@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using UnityEditor.EditorTools;
 using UnityEditor.IMGUI.Controls;
 
 public class EventManagerEditor : EditorWindow
@@ -745,7 +744,8 @@ public class EventManagerEditor : EditorWindow
                                 selectedEvent.Event.Description = EditorGUILayout.TextArea(selectedEvent.Event.Description, EditorStyles.textArea, GUILayout.Width(labelDataWidth), GUILayout.Height(50));
                                 GUILayout.EndHorizontal();
 
-                                EditorUtility.IsDirty(selectedEvent.Event);
+                                Undo.RecordObject(selectedEvent.Event, "Changed description");
+                                //EditorUtility.IsDirty(selectedEvent.Event);
 
                                 EditorGUILayout.Space();
                                 EditorGUILayout.Space();
