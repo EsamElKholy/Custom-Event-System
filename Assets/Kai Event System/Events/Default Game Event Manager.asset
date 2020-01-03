@@ -15,8 +15,4 @@ MonoBehaviour:
   _Scenes:
   - {fileID: 102900000, guid: 9fc0d4010bbf28b4594072e72b8655ab, type: 3}
   - {fileID: 102900000, guid: 1d4bd2aa20bd85540bea1ae56cd1e9d4, type: 3}
-  - {fileID: 102900000, guid: 1d4bd2aa20bd85540bea1ae56cd1e9d4, type: 3}
-  Listeners:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  Listeners: []

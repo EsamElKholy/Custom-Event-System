@@ -117,6 +117,7 @@ public class GameEventManager : ScriptableObject
             {
                 if (SceneManager.GetSceneAt(i) != SceneManager.GetActiveScene())
                 {
+                    EditorSceneManager.SaveScene(EditorSceneManager.GetSceneAt(i));
                     EditorSceneManager.CloseScene(EditorSceneManager.GetSceneAt(i), true);
                 }
             }
