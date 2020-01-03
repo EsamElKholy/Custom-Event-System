@@ -131,7 +131,7 @@ public class GameEventManager : ScriptableObject
 
                     for (int j = 0; j < res.Length; j++)
                     {
-                        var asset = AssetDatabase.GUIDToAssetPath(res[i]);
+                        var asset = AssetDatabase.GUIDToAssetPath(res[j]);
 
                         if (asset.Contains(scenes[i]))
                         {
