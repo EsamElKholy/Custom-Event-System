@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
+using UnityEditor.SceneManagement;
 
 public class EventManagerEditor : EditorWindow
 {
@@ -81,8 +82,8 @@ public class EventManagerEditor : EditorWindow
 
     private SceneAsset pickedScene;
 
-    private float Cooldown = 0;
-    private float Counter = 0;
+    //private float Cooldown = 0;
+    //private float Counter = 0;
 
     [MenuItem("Custom Tools/Event Manager")]
     public static void OpenWindow()
@@ -236,7 +237,7 @@ public class EventManagerEditor : EditorWindow
         {
             //if (Counter >= Cooldown)
             {
-                Counter = 0;
+                //Counter = 0;
                 if (searchString.Length == 0 && CurrentTab == 0)
                 {
                     SceneNames = new Dictionary<string, string>();
@@ -273,7 +274,7 @@ public class EventManagerEditor : EditorWindow
                 }
             }
 
-            Counter += Time.fixedDeltaTime;
+            //Counter += Time.fixedDeltaTime;
         }
         GUILayout.BeginHorizontal();
         DrawSearchBar(searchBarArea);
@@ -332,7 +333,7 @@ public class EventManagerEditor : EditorWindow
                         {
                             EditorGUILayout.Space();
                             float y = 0;
-                            float singleH = 30;
+                            float singleH = 55;
                             float h = scenes.Count * 1 * singleH;
                             float nh = leftDataArea.height;
                             float nw = leftDataArea.width;
@@ -354,16 +355,12 @@ public class EventManagerEditor : EditorWindow
 
                             for (int i = 0; i < scenes.Count * 1; i++)
                             {
-                                GUILayout.BeginArea(new Rect(0, y, nw, 30), EditorStyles.helpBox);
+                                GUILayout.BeginArea(new Rect(0, y, nw, 55), EditorStyles.helpBox);
                                 GUILayout.Space(3);
                                 EditorGUILayout.BeginHorizontal();
-                                if(GUILayout.Button(scenes[i].name, GUILayout.Width(leftDataArea.width / 3 - 15)))
-                                {
-                                    // Right Panel
-                                    showRightPanel = true;
-                                    selectedScene = scenes[i];
-                                    rightPanelTitle = "Scene: \"" + AssetDatabase.GetAssetPath(scenes[i]) + "\" Statistics";
-                                }
+
+                                GUILayout.Label(scenes[i].name, EditorStyles.label, GUILayout.Width(leftDataArea.width / 3 - 15));
+                                
                                 scenes[i] = (SceneAsset)EditorGUILayout.ObjectField(scenes[i], typeof(SceneAsset), false, GUILayout.Width((leftDataArea.width * 2 / 3) - 37));
 
                                 if (GUILayout.Button("X", EditorStyles.toolbarButton))
@@ -372,11 +369,58 @@ public class EventManagerEditor : EditorWindow
                                 }
 
                                 EditorGUILayout.EndHorizontal();
+                                GUILayout.Space(3);
+                                EditorGUILayout.BeginHorizontal();
+
+                                var scene = EditorSceneManager.GetSceneByPath(AssetDatabase.GetAssetPath(scenes[i]));
+
+                                if (GUILayout.Button("Open Scene"))
+                                {
+                                    EditorSceneManager.OpenScene(scene.path, OpenSceneMode.Additive);
+
+                                    if(scene.IsValid() && scene.isLoaded)
+                                    {
+                                        // Right Panel
+                                        showRightPanel = true;
+                                        selectedScene = scenes[i];
+                                        rightPanelTitle = "Scene: \"" + scene.path + "\" Statistics";
+                                    }
+                                }
+                                GUILayout.Space(2);
+
+                                if (GUILayout.Button("Make Active"))
+                                {
+                                    if (scene.IsValid() && scene.isLoaded)
+                                    {
+                                        EditorSceneManager.SetActiveScene(scene);    
+                                    }
+                                }
+                                GUILayout.Space(2);
+
+                                if (GUILayout.Button("CloseScene"))
+                                {
+                                    selectedScene = null;
+                                    showRightPanel = false;
+                                    rightPanelTitle = "";
+
+
+                                    if (scene.IsValid() && scene.isLoaded)
+                                    {
+                                        EditorSceneManager.SaveScene(scene);
+                                    }
+
+                                    if (scene.IsValid())
+                                    {
+                                        EditorSceneManager.CloseScene(scene, true);
+                                    }
+                                }
+                                EditorGUILayout.EndHorizontal();
+
                                 GUILayout.EndArea();
                                 int id = GUIUtility.GetControlID(FocusType.Passive);
                                 leftPanelItemsID.Add(id);
 
-                                y += 30;
+                                y += 65;
                             }                            
                         }
                         break;
@@ -395,13 +439,13 @@ public class EventManagerEditor : EditorWindow
                                     float dt = Mathf.Abs(leftDataArea.height - (h));
                                     nh += dt + 40;
                                     nw -= 30;
-                                    nm = 30;
+                                    nm = -30;
                                 }
                                 else
                                 {
                                     nh -= 30;
                                     nw -= 8;
-                                    nm = 10;
+                                    nm = -10;
                                 }
 
                                 if (GUILayout.Button("Find All Events in Project"))
@@ -430,7 +474,7 @@ public class EventManagerEditor : EditorWindow
                                             showRightPanel = true;
                                             rightPanelTitle = "Event: " + selectedEvent.Name + " Details";
                                         }
-                                        e.Value.Event = (CustomEvent)EditorGUILayout.ObjectField(e.Value.Event, typeof(CustomEvent), false, GUILayout.Width((leftDataArea.width * 3 / 4) - nm));
+                                        EditorGUILayout.ObjectField(e.Value.Event, typeof(CustomEvent), false, GUILayout.Width((leftDataArea.width * 3 / 4) - nm));
                                         EditorGUILayout.EndHorizontal();
                                         GUILayout.EndArea();
                                         y += 32;
@@ -775,7 +819,7 @@ public class EventManagerEditor : EditorWindow
 
                                         GUILayout.BeginArea(listenerArea, EditorStyles.helpBox);
                                         EditorGUILayout.BeginHorizontal();
-                                        GUILayout.Label(eventsCol.Events[i].name, EditorStyles.toolbar, GUILayout.Width(listenerArea.width / 4));
+                                        GUILayout.Label(eventsCol.Events[i].name, EditorStyles.helpBox, GUILayout.Width(listenerArea.width / 4));
                                         eventsCol.Events[i] = (GameEvent)EditorGUILayout.ObjectField(eventsCol.Events[i], typeof(GameEvent), true, GUILayout.Width((listenerArea.width * 3 / 4) - 40));
                                         if (GUILayout.Button("X", EditorStyles.toolbarButton))
                                         {
@@ -857,7 +901,7 @@ public class EventManagerEditor : EditorWindow
                                     GUILayout.BeginArea(listenerArea, EditorStyles.helpBox);
                                     GUILayout.BeginHorizontal();
 
-                                    GUILayout.Label(selectedEvent.Event.listeners[i].name, EditorStyles.toolbar, GUILayout.Width(listenerArea.width / 4));
+                                    GUILayout.Label(selectedEvent.Event.listeners[i].name, EditorStyles.helpBox, GUILayout.Width(listenerArea.width / 4));
                                     selectedEvent.Event.listeners[i] = (GameEventListener)EditorGUILayout.ObjectField(selectedEvent.Event.listeners[i], typeof(GameEventListener), true, GUILayout.Width((listenerArea.width * 3 / 4) - 20));
                                     GUILayout.EndHorizontal();
                                     GUILayout.EndArea();
@@ -886,7 +930,7 @@ public class EventManagerEditor : EditorWindow
                                     GUILayout.BeginArea(listenerArea, EditorStyles.helpBox);
                                     GUILayout.BeginHorizontal();
 
-                                    GUILayout.Label(reference.name, EditorStyles.toolbar, GUILayout.Width(listenerArea.width / 4));
+                                    GUILayout.Label(reference.name, EditorStyles.helpBox, GUILayout.Width(listenerArea.width / 4));
                                     reference = (MonoBehaviour)EditorGUILayout.ObjectField(item, typeof(MonoBehaviour), true, GUILayout.Width((listenerArea.width * 3 / 4) - 20));
                                     GUILayout.EndHorizontal();
                                     GUILayout.EndArea();

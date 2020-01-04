@@ -116,10 +116,17 @@ public class GameEventManager : ScriptableObject
             var activeScene = EditorSceneManager.GetActiveScene();
             for (int i = 0; i < EditorSceneManager.sceneCount; i++)
             {
-                if (EditorSceneManager.GetSceneAt(i) != activeScene)
+                if (EditorSceneManager.GetSceneAt(i) != activeScene && EditorSceneManager.GetSceneAt(i).isLoaded)
                 {
-                    EditorSceneManager.SaveScene(EditorSceneManager.GetSceneAt(i));
-                    EditorSceneManager.CloseScene(EditorSceneManager.GetSceneAt(i), true);
+                    if (EditorSceneManager.GetSceneAt(i).isLoaded)
+                    {
+                        EditorSceneManager.SaveScene(EditorSceneManager.GetSceneAt(i));
+                    }
+                    else
+                    {
+                        EditorSceneManager.LoadScene(EditorSceneManager.GetSceneAt(i).path, LoadSceneMode.Additive);
+                    }
+
                     EditorSceneManager.SetActiveScene(activeScene);
                 }
             }
@@ -179,6 +186,19 @@ public class GameEventManager : ScriptableObject
 
             if (index >= 0)
             {
+                var temp = EditorSceneManager.GetSceneByPath(AssetDatabase.GetAssetPath(scene));
+                {
+                    if (temp.IsValid() && temp.isLoaded)
+                    {
+                        EditorSceneManager.SaveScene(temp);
+                    }
+
+                    if (temp.IsValid())
+                    {
+                        EditorSceneManager.CloseScene(temp, true);
+                    }                    
+                }
+
                 _Scenes.RemoveAt(index);
             }
         }
@@ -198,10 +218,17 @@ public class GameEventManager : ScriptableObject
             var activeScene = EditorSceneManager.GetActiveScene();
             for (int i = 0; i < EditorSceneManager.sceneCount; i++)
             {
-                if (EditorSceneManager.GetSceneAt(i) != activeScene)
+                if (EditorSceneManager.GetSceneAt(i) != activeScene && EditorSceneManager.GetSceneAt(i).isLoaded)
                 {
-                    EditorSceneManager.SaveScene(EditorSceneManager.GetSceneAt(i));
-                    EditorSceneManager.CloseScene(EditorSceneManager.GetSceneAt(i), true);
+                    if (EditorSceneManager.GetSceneAt(i).isLoaded)
+                    {
+                        EditorSceneManager.SaveScene(EditorSceneManager.GetSceneAt(i));
+                    }
+                    else
+                    {
+                        EditorSceneManager.LoadScene(EditorSceneManager.GetSceneAt(i).path, LoadSceneMode.Additive);
+                    }
+
                     EditorSceneManager.SetActiveScene(activeScene);
                 }
             }
@@ -350,7 +377,12 @@ public class GameEventManager : ScriptableObject
             }
         }
 
-        var scene = EditorSceneManager.GetSceneByPath(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(s)));       
+        var scene = EditorSceneManager.GetSceneByPath(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(s)));
+
+        if (scene.IsValid() && !scene.isLoaded)
+        {
+            EditorSceneManager.LoadScene(scene.path);
+        }
 
         if (scene.IsValid() && scene.isLoaded)
         {
