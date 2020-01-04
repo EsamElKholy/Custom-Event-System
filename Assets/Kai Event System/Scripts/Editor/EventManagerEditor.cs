@@ -100,11 +100,11 @@ public class EventManagerEditor : EditorWindow
 
         Instance.titleContent = new GUIContent("Event Manager");
     }
-    Texture2D bg;
+    //Texture2D bg;
     
     private void OnEnable()
     {
-        bg = MakeTex(10, 10, new Color(0.4f, 0.5f, 0.5f, 1));       
+        //bg = MakeTex(10, 10, new Color(0.4f, 0.5f, 0.5f, 1));       
 
         resizer = new Resizer(new Rect(0, 57, 5, position.height * 2), 0.5f, new GUIStyle());
 
@@ -212,9 +212,9 @@ public class EventManagerEditor : EditorWindow
     private void DrawEventManagerSection()
     {
         GUILayout.BeginArea(new Rect(2, 3, position.width - 6, 27), EditorStyles.helpBox);
-        GUILayout.Space(3);
+        GUILayout.Space(1);
         EditorGUILayout.BeginHorizontal();
-        EditorGUILayout.LabelField("Game Event Manager", GUILayout.Width(((position.width - 6) / 4)));
+        EditorGUILayout.LabelField("Game Event Manager", EditorStyles.helpBox, GUILayout.Width(((position.width - 6) / 4)));
         EventManager = (GameEventManager)EditorGUILayout.ObjectField(EventManager, typeof(GameEventManager), false, GUILayout.Width(((position.width - 6) * 3 / 4) - 15));
         EditorGUILayout.EndHorizontal();       
         GUILayout.EndArea();
@@ -222,12 +222,11 @@ public class EventManagerEditor : EditorWindow
 
     private void DrawSearchSection()
     {
-        var temp = EditorStyles.helpBox.normal.background;
-        EditorStyles.helpBox.normal.background = bg;
-
+       // var temp = EditorStyles.helpBox.normal.background;
+        //EditorStyles.helpBox.normal.background = bg;
 
         GUILayout.BeginArea(searchBar.Area, EditorStyles.helpBox);
-        EditorStyles.helpBox.normal.background = temp;
+        //EditorStyles.helpBox.normal.background = temp;
         searchBar.UpdateArea(2, 31, position.width - 6, 25);
 
         GUILayout.BeginVertical();
@@ -279,8 +278,13 @@ public class EventManagerEditor : EditorWindow
 
             //Counter += Time.fixedDeltaTime;
         }
+        GUILayout.Space(1);
         GUILayout.BeginHorizontal();
-        DrawSearchBar(searchBarArea);
+        EditorGUILayout.LabelField("Type the name of the item you are looking for", EditorStyles.helpBox, GUILayout.Width(searchBarArea.width / 4));
+        GUILayout.EndHorizontal();
+
+        GUILayout.BeginHorizontal();
+        DrawSearchBar(new Rect(searchBarArea.width / 4 + 7, searchBarArea.y, searchBarArea.width * 3 / 4 - 5, searchBarArea.height));
         GUILayout.EndHorizontal();
         GUILayout.EndArea();
         
@@ -334,6 +338,19 @@ public class EventManagerEditor : EditorWindow
                 {
                     case 0:
                         {
+                            if (selectedScene && showRightPanel == false)
+                            {
+                                var path = AssetDatabase.GetAssetPath(selectedScene);
+                                var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
+
+                                if (scene.IsValid() && scene.isLoaded)
+                                {
+                                    // Right Panel
+                                    showRightPanel = true;
+                                    rightPanelTitle = "Scene: \"" + scene.path + "\" Statistics";
+                                }
+                            }
+
                             EditorGUILayout.Space();
                             float y = 0;
                             float singleH = 55;
@@ -375,7 +392,7 @@ public class EventManagerEditor : EditorWindow
                                 GUILayout.Space(3);
                                 EditorGUILayout.BeginHorizontal();
 
-                                if (GUILayout.Button("Open Scene"))
+                                if (GUILayout.Button("Open and Show Details"))
                                 {
                                     var path = AssetDatabase.GetAssetPath(scenes[i]);
                                     var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
@@ -435,6 +452,18 @@ public class EventManagerEditor : EditorWindow
                         {
                             if (EventManager)
                             {
+                                if (EventManager && EventManager.Events.Count == 0)
+                                {
+                                    EventManager.FindAllEvents();
+                                }
+
+                                if (selectedEvent != null && selectedEvent.Event && showRightPanel == false)
+                                {
+                                    GUI.FocusControl("");
+                                    showRightPanel = true;
+                                    rightPanelTitle = "Event: " + selectedEvent.Name + " Details";
+                                }
+
                                 float y = 0;
                                 float singleH = 30;
                                 float h = EventManager.Events.Count * singleH;
@@ -494,6 +523,12 @@ public class EventManagerEditor : EditorWindow
                         {
                             if (EventManager)
                             {
+                                if (selectedListener && showRightPanel == false)
+                                {
+                                    showRightPanel = true;
+                                    rightPanelTitle = "Event Listener: " + selectedListener.name + " Details";
+                                }
+
                                 float y = 0;
                                 float singleH = 30;
                                 float h = EventManager.Listeners.Count * singleH;
@@ -575,6 +610,12 @@ public class EventManagerEditor : EditorWindow
                         {
                             if (EventManager)
                             {
+                                if (selectedReference != null && selectedReference.Reference && showRightPanel == false)
+                                {
+                                    showRightPanel = true;
+                                    rightPanelTitle = "Event Reference: " + selectedReference.Reference.name + " Details";
+                                }
+
                                 float y = 0;
                                 float singleH = 30;
                                 float h = EventManager.References.Count * singleH;
@@ -968,7 +1009,7 @@ public class EventManagerEditor : EditorWindow
                                     EditorGUILayout.Space();
                                     EditorGUILayout.Space();
 
-                                    string objectText = "This Listener is on The GameObject: \"" + selectedListener.gameObject.name + "\"";
+                                    string objectText = "This listener is on the GameObject: \"" + selectedListener.gameObject.name + "\"";
                                     GUILayout.BeginHorizontal();
                                     EditorGUILayout.LabelField("Game Object", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth));
                                     EditorGUILayout.LabelField(objectText, EditorStyles.helpBox, GUILayout.Width(labelDataWidth));
@@ -978,24 +1019,22 @@ public class EventManagerEditor : EditorWindow
 
                                     EditorGUILayout.Space();
                                     EditorGUILayout.Space();
+                                   
+                                    GUILayout.BeginHorizontal();
+                                    EditorGUILayout.LabelField("Event Reference", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth));
+                                    selectedListener.Event = (CustomEvent)EditorGUILayout.ObjectField(selectedListener.Event, typeof(CustomEvent), false, GUILayout.Width(labelDataWidth));
+                                    GUILayout.EndHorizontal();
 
-                                    if (selectedListener.Event)
-                                    {
-                                        string eventText = "This Listener is Listening waiting for \"" + selectedListener.Event.name + "\"";
-                                        GUILayout.BeginHorizontal();
-                                        EditorGUILayout.LabelField("Event", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth));
-                                        EditorGUILayout.LabelField(eventText, EditorStyles.helpBox, GUILayout.Width(labelDataWidth));
-                                        GUILayout.EndHorizontal();
+                                    EditorGUILayout.Space();
+                                    EditorGUILayout.Space();
 
-                                        EditorGUILayout.Space();
-                                        EditorGUILayout.Space();
-                                    }
-
-                                    string responseText = "This Listener Will Activate " + selectedListener.response.GetPersistentEventCount() + " When The Event is Raised.";
+                                    string responseText = "This listener Will activate " + selectedListener.response.GetPersistentEventCount() + " response when the event is raised.";
                                     GUILayout.BeginHorizontal();
                                     EditorGUILayout.LabelField("Response", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth));
                                     EditorGUILayout.LabelField(responseText, EditorStyles.helpBox, GUILayout.Width(labelDataWidth));
                                     GUILayout.EndHorizontal();
+
+                                    
                                 }                                
                             }
                             break;
