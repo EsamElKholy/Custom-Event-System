@@ -1138,7 +1138,7 @@ public class EventManagerEditor : EditorWindow
                             Dictionary<string, string> scenes = new Dictionary<string, string>();
                             foreach (var item in SceneNames)
                             {
-                                if (item.Key.ToLower().Contains(result.ToLower()))
+                                if (item.Value.ToLower().Contains(result.ToLower()))
                                 {
                                     if (scenes.ContainsKey(item.Key) == false)
                                     {
@@ -1178,7 +1178,8 @@ public class EventManagerEditor : EditorWindow
                     }
                     break;
                 case 2:
-                    {                        
+                    {
+                        RefreshSceneNames(true);
                         List<string> selectedScenes = new List<string>();
 
                         for (int i = 0; i < DropdownNames.Length; i++)
@@ -1209,10 +1210,14 @@ public class EventManagerEditor : EditorWindow
                                 EventManager.Listeners = newResult;
                             }
                         }
+
+                        RefreshSceneNames(false);
                     }
                     break;
                 case 3:
                     {
+                        RefreshSceneNames(true);
+
                         List<string> selectedScenes = new List<string>();
 
                         for (int i = 0; i < DropdownNames.Length; i++)
@@ -1243,6 +1248,8 @@ public class EventManagerEditor : EditorWindow
                                 EventManager.References = newResult;
                             }
                         }
+
+                        RefreshSceneNames(false);
                     }
                     break;
                 default:
