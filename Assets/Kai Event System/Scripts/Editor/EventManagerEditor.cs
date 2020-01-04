@@ -116,6 +116,9 @@ public class EventManagerEditor : EditorWindow
 
     private void OnInspectorUpdate()
     {
+        EditorStyles.helpBox.fontSize = 12;
+        EditorStyles.toolbar.fontSize = 12;
+
         if (gec && pickedEvent)
         {
             gec.Events.Add(pickedEvent);
@@ -135,7 +138,7 @@ public class EventManagerEditor : EditorWindow
                 {
                     var guid1 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(EventManager._Scenes[i]));
                     var guid2 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(pickedScene));
-                    if (EventManager._Scenes[i].name.Equals(pickedScene.name) && guid1.Equals(guid2))
+                    if (guid1.Equals(guid2))
                     {
                         alreadyThere = true;
                         break;
@@ -372,11 +375,10 @@ public class EventManagerEditor : EditorWindow
                                 GUILayout.Space(3);
                                 EditorGUILayout.BeginHorizontal();
 
-                                var scene = EditorSceneManager.GetSceneByPath(AssetDatabase.GetAssetPath(scenes[i]));
-
                                 if (GUILayout.Button("Open Scene"))
                                 {
-                                    EditorSceneManager.OpenScene(scene.path, OpenSceneMode.Additive);
+                                    var path = AssetDatabase.GetAssetPath(scenes[i]);
+                                    var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
 
                                     if(scene.IsValid() && scene.isLoaded)
                                     {
@@ -390,6 +392,9 @@ public class EventManagerEditor : EditorWindow
 
                                 if (GUILayout.Button("Make Active"))
                                 {
+                                    var path = AssetDatabase.GetAssetPath(scenes[i]);
+                                    var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
+
                                     if (scene.IsValid() && scene.isLoaded)
                                     {
                                         EditorSceneManager.SetActiveScene(scene);    
@@ -399,10 +404,12 @@ public class EventManagerEditor : EditorWindow
 
                                 if (GUILayout.Button("CloseScene"))
                                 {
+                                    var path = AssetDatabase.GetAssetPath(scenes[i]);
+                                    var scene = EditorSceneManager.GetSceneByPath(path);
+
                                     selectedScene = null;
                                     showRightPanel = false;
                                     rightPanelTitle = "";
-
 
                                     if (scene.IsValid() && scene.isLoaded)
                                     {
@@ -509,7 +516,6 @@ public class EventManagerEditor : EditorWindow
                                 GUILayout.Space(2);
                                 RefreshSceneNames(true);
                                 filter = EditorGUILayout.MaskField(filter, DropdownNames, EditorStyles.toolbarPopup);
-                                RefreshSceneNames(false);
                                 List<string> selectedScenes = new List<string>();
 
                                 for (int i = 0; i < DropdownNames.Length; i++)
@@ -526,9 +532,13 @@ public class EventManagerEditor : EditorWindow
                                 {
                                     if (EventManager)
                                     {
+                                        showRightPanel = false;
+                                        selectedListener = null;
+                                        searchString = "";
                                         EventManager.FindAllListeners(selectedScenes);
                                     }
                                 }
+                                RefreshSceneNames(false);
 
                                 EditorGUILayout.EndHorizontal();
 
@@ -587,7 +597,6 @@ public class EventManagerEditor : EditorWindow
                                 GUILayout.Space(2);
                                 RefreshSceneNames(true);
                                 filter = EditorGUILayout.MaskField(filter, DropdownNames, EditorStyles.toolbarPopup);
-                                RefreshSceneNames(false);
 
                                 List<string> selectedScenes = new List<string>();
 
@@ -605,10 +614,13 @@ public class EventManagerEditor : EditorWindow
                                 {
                                     if (EventManager)
                                     {
+                                        showRightPanel = false;
+                                        selectedReference = null;
                                         searchString = "";
                                         EventManager.FindAllReferences(selectedScenes);
                                     }
                                 }
+                                RefreshSceneNames(false);
 
                                 EditorGUILayout.EndHorizontal();
 
@@ -752,10 +764,11 @@ public class EventManagerEditor : EditorWindow
                                     h = (nh / 2 + 120) + ((eventCol.Events.Count + selectedEvent.Event.listeners.Count + refs.Count) * 1 * singleH);
                                 }
                                 float nw = rightDataArea.width;
+
                                 if (rightDataArea.height + 5 < h)
                                 {
                                     float dt = Mathf.Abs((rightDataArea.height) - (h));
-                                    nh += dt - nh / 2 + 25;
+                                    nh += dt - nh / 2 + 40;
                                     nw -= 23;
                                 }
                                 else
@@ -773,7 +786,7 @@ public class EventManagerEditor : EditorWindow
                                 EditorGUILayout.LabelField("Event Name", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth), GUILayout.Height(labelHeight));
                                 EditorGUILayout.LabelField(selectedEvent.Name, EditorStyles.helpBox, GUILayout.Width(labelDataWidth), GUILayout.Height(labelHeight));
                                 GUILayout.EndHorizontal();
-                                EditorStyles.helpBox.fontSize = 12;
+                                EditorStyles.helpBox.fontSize = 10;
                                 EditorStyles.helpBox.fontStyle = FontStyle.Bold;
 
                                 EditorGUILayout.Space();
@@ -799,7 +812,7 @@ public class EventManagerEditor : EditorWindow
                                 float y = 0;
                                 if (selectedEvent.Event.Type == CustomEventType.Game_Event_Collection)
                                 {
-                                    EditorStyles.toolbar.fontSize = 13;
+                                    EditorStyles.toolbar.fontSize = 10;
                                     y = rightDataArea.height / 2 - 50;
                                     var eventsCol = (GameEventCollection)selectedEvent.Event;
                                     GUILayout.BeginArea(new Rect(0, y - 30, rightDataArea.width, 25));
@@ -912,8 +925,7 @@ public class EventManagerEditor : EditorWindow
                                 GUILayout.EndArea();
                                 y += 40;
 
-                                EditorStyles.toolbar.fontSize = 13;
-
+                                EditorStyles.toolbar.fontSize = 10;
 
                                 foreach (var item in refs)
                                 {
@@ -942,55 +954,59 @@ public class EventManagerEditor : EditorWindow
                             {
                                 float labelTitleWidth = rightDataArea.width / 4;
                                 float labelDataWidth = (rightDataArea.width * 3 / 4) - 20;
-                                string sceneText = "This Listener is in The Scene: \"" + selectedListener.gameObject.scene.path + "\"";
-                                GUILayout.BeginHorizontal();
-                                EditorGUILayout.LabelField("Scene", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth));
-                                EditorGUILayout.LabelField(sceneText, EditorStyles.helpBox, GUILayout.Width(labelDataWidth));
-                                GUILayout.EndHorizontal();
-                                EditorStyles.helpBox.fontSize = 12;
-                                EditorStyles.helpBox.fontStyle = FontStyle.Bold;
 
-                                EditorGUILayout.Space();
-                                EditorGUILayout.Space();
-
-                                string objectText = "This Listener is on The GameObject: \"" + selectedListener.gameObject.name + "\"";
-                                GUILayout.BeginHorizontal();
-                                EditorGUILayout.LabelField("Game Object", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth));
-                                EditorGUILayout.LabelField(objectText, EditorStyles.helpBox, GUILayout.Width(labelDataWidth));
-                                GUILayout.EndHorizontal();
-                                EditorStyles.helpBox.fontSize = 12;
-                                EditorStyles.helpBox.fontStyle = FontStyle.Bold;
-
-                                EditorGUILayout.Space();
-                                EditorGUILayout.Space();
-
-                                if (selectedListener.Event)
+                                if (selectedListener)
                                 {
-                                    string eventText = "This Listener is Listening waiting for \"" + selectedListener.Event.name + "\"";
+                                    string sceneText = "This Listener is in The Scene: \"" + selectedListener.gameObject.scene.path + "\"";
                                     GUILayout.BeginHorizontal();
-                                    EditorGUILayout.LabelField("Event", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth));
-                                    EditorGUILayout.LabelField(eventText, EditorStyles.helpBox, GUILayout.Width(labelDataWidth));
+                                    EditorGUILayout.LabelField("Scene", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth));
+                                    EditorGUILayout.LabelField(sceneText, EditorStyles.helpBox, GUILayout.Width(labelDataWidth));
                                     GUILayout.EndHorizontal();
+                                    EditorStyles.helpBox.fontSize = 10;
+                                    EditorStyles.helpBox.fontStyle = FontStyle.Bold;
 
                                     EditorGUILayout.Space();
                                     EditorGUILayout.Space();
-                                }
 
-                                string responseText = "This Listener Will Activate " + selectedListener.response.GetPersistentEventCount() + " When The Event is Raised.";
-                                GUILayout.BeginHorizontal();
-                                EditorGUILayout.LabelField("Response", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth));
-                                EditorGUILayout.LabelField(responseText, EditorStyles.helpBox, GUILayout.Width(labelDataWidth));
-                                GUILayout.EndHorizontal();
+                                    string objectText = "This Listener is on The GameObject: \"" + selectedListener.gameObject.name + "\"";
+                                    GUILayout.BeginHorizontal();
+                                    EditorGUILayout.LabelField("Game Object", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth));
+                                    EditorGUILayout.LabelField(objectText, EditorStyles.helpBox, GUILayout.Width(labelDataWidth));
+                                    GUILayout.EndHorizontal();
+                                    EditorStyles.helpBox.fontSize = 10;
+                                    EditorStyles.helpBox.fontStyle = FontStyle.Bold;
+
+                                    EditorGUILayout.Space();
+                                    EditorGUILayout.Space();
+
+                                    if (selectedListener.Event)
+                                    {
+                                        string eventText = "This Listener is Listening waiting for \"" + selectedListener.Event.name + "\"";
+                                        GUILayout.BeginHorizontal();
+                                        EditorGUILayout.LabelField("Event", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth));
+                                        EditorGUILayout.LabelField(eventText, EditorStyles.helpBox, GUILayout.Width(labelDataWidth));
+                                        GUILayout.EndHorizontal();
+
+                                        EditorGUILayout.Space();
+                                        EditorGUILayout.Space();
+                                    }
+
+                                    string responseText = "This Listener Will Activate " + selectedListener.response.GetPersistentEventCount() + " When The Event is Raised.";
+                                    GUILayout.BeginHorizontal();
+                                    EditorGUILayout.LabelField("Response", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth));
+                                    EditorGUILayout.LabelField(responseText, EditorStyles.helpBox, GUILayout.Width(labelDataWidth));
+                                    GUILayout.EndHorizontal();
+                                }                                
                             }
                             break;
                         case 3:
                             {
                                 if (selectedReference != null && selectedReference.Reference)
-                                {
+                                {                                   
                                     EventManager.RefreshReference(selectedReference);
                                     float singleH = 25;
                                     float nh = rightDataArea.height;
-                                    float h = (nh / 2 + 20) + ((selectedReference.ReferenceNames.Count) * 1 * singleH);
+                                    float h = (nh / 2 + 180) + ((selectedReference.ReferenceNames.Count) * 1 * singleH);
                                 
                                     float nw = rightDataArea.width;
                                     if (rightDataArea.height < h)
@@ -1004,6 +1020,7 @@ public class EventManagerEditor : EditorWindow
                                         nh -= 15 + nh / 2;
                                         nw -= 8;
                                     }
+                                    EditorGUILayout.BeginVertical();
                                 
                                     float y = 0;
 
@@ -1015,7 +1032,7 @@ public class EventManagerEditor : EditorWindow
                                     EditorGUILayout.LabelField("Scene", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth), GUILayout.Height(50));
                                     EditorGUILayout.LabelField(sceneText, EditorStyles.helpBox, GUILayout.Width(labelDataWidth), GUILayout.Height(50));
                                     GUILayout.EndHorizontal();
-                                    EditorStyles.helpBox.fontSize = 12;
+                                    EditorStyles.helpBox.fontSize = 10;
                                     EditorStyles.helpBox.fontStyle = FontStyle.Bold;
 
                                     EditorGUILayout.Space();
@@ -1026,19 +1043,19 @@ public class EventManagerEditor : EditorWindow
                                     EditorGUILayout.LabelField("Game Object", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth), GUILayout.Height(50));
                                     EditorGUILayout.LabelField(objectText, EditorStyles.helpBox, GUILayout.Width(labelDataWidth), GUILayout.Height(50));
                                     GUILayout.EndHorizontal();
-                                    EditorStyles.helpBox.fontSize = 12;
+                                    EditorStyles.helpBox.fontSize = 10;
                                     EditorStyles.helpBox.fontStyle = FontStyle.Bold;
 
-                                    EditorGUILayout.Space();
-                                    EditorGUILayout.Space();
-                               
                                     GUIContent listenerTitle = new GUIContent();
                                     listenerTitle.text = "Fields (" + selectedReference.ReferenceNames.Count + " Fields)";
-                                    EditorStyles.toolbar.fontSize = 13;
+                                    EditorStyles.toolbar.fontSize = 10;
                                     if (y == 0)
                                     {
-                                        y = rightDataArea.height / 2 - 75;
+                                        y = rightDataArea.height / 2 - 50;
+                                        GUILayout.BeginArea(new Rect(0, y, nw, 25));
                                         GUILayout.Label(listenerTitle, EditorStyles.toolbar, GUILayout.Width(nw));
+                                        GUILayout.EndArea();
+                                        y += 30;
                                     }
                                 
                                     GUILayout.Label("", GUILayout.Width(rightDataArea.width - 30), GUILayout.Height(nh));
@@ -1061,7 +1078,9 @@ public class EventManagerEditor : EditorWindow
                                         GUILayout.EndHorizontal();
                                         GUILayout.EndArea();
                                         y += 32;
-                                    }                               
+                                    }
+
+                                    EditorGUILayout.EndVertical();
                                 }
                             }
                             break;

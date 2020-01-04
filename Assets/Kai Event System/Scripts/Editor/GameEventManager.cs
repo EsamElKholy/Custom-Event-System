@@ -135,33 +135,34 @@ public class GameEventManager : ScriptableObject
             {
                 for (int j = 0; j < _Scenes.Count; j++)
                 {
-                    if (_Scenes[j].name.Equals(scenes[i]))
+                    var guid1 = AssetDatabase.AssetPathToGUID(scenes[i]);
+                    var guid2 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(_Scenes[j]));
+
                     {
+                        if (guid1.Equals(guid2))                     
                         {
-                            EditorSceneManager.OpenScene(AssetDatabase.GetAssetPath(_Scenes[j]), OpenSceneMode.Additive);
+                            var scene = EditorSceneManager.OpenScene(scenes[i], OpenSceneMode.Additive);
+
+                            //for (int k = 0; k < scenes.Count; k++)
+                            {
+                                if (scene.IsValid() && scene.isLoaded)
+                                {
+                                    var allObjects = scene.GetRootGameObjects();
+
+                                    for (int h = 0; h < allObjects.Length; h++)
+                                    {
+                                        var obj = allObjects[h];
+
+                                        var comps = obj.GetComponentsInChildren<GameEventListener>(true);
+
+                                        Listeners.AddRange(comps);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-            }
-
-            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
-            {
-                var scene = EditorSceneManager.GetSceneAt(i);
-
-                if (scene.IsValid() && scene.isLoaded)
-                {
-                    var allObjects = scene.GetRootGameObjects();
-
-                    for (int j = 0; j < allObjects.Length; j++)
-                    {
-                        var obj = allObjects[j];
-
-                        var comps = obj.GetComponentsInChildren<GameEventListener>(true);
-
-                        Listeners.AddRange(comps);
-                    }
-                }
-            }
+            }            
         }
     }
 
@@ -237,52 +238,52 @@ public class GameEventManager : ScriptableObject
             {
                 for (int j = 0; j < _Scenes.Count; j++)
                 {
-                    if (_Scenes[j].name.Equals(scenes[i]))
                     {
+                        var guid1 = AssetDatabase.AssetPathToGUID(scenes[i]);
+                        var guid2 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(_Scenes[j]));
+
+                        if (guid1.Equals(guid2))
                         {
-                            EditorSceneManager.OpenScene(AssetDatabase.GetAssetPath(_Scenes[j]), OpenSceneMode.Additive);
-                        }
-                    }
-                }
-            }
+                            var scene = EditorSceneManager.OpenScene(scenes[i], OpenSceneMode.Additive);
 
-            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
-            {
-                var scene = EditorSceneManager.GetSceneAt(i);
-
-                if (scene.IsValid() && scene.isLoaded)
-                {
-                    var allObjects = scene.GetRootGameObjects();
-
-                    for (int j = 0; j < allObjects.Length; j++)
-                    {
-                        var obj = allObjects[j];
-
-                        var comps = obj.GetComponentsInChildren<MonoBehaviour>(true);
-
-                        foreach (var comp in comps)
-                        {
-                            FieldInfo[] fields = comp.GetType().GetFields();
-
-                            var eventReference = new EventReference();
-                            eventReference.Reference = comp;
-                            bool add = false;
-                            foreach (var field in fields)
                             {
-                                EventAttribute attrib = Attribute.GetCustomAttribute(field, typeof(EventAttribute)) as EventAttribute;
-
-                                if (attrib != null)
+                                if (scene.IsValid() && scene.isLoaded)
                                 {
-                                    eventReference.Events.Add(field.GetValue(comp) as CustomEvent);
-                                    eventReference.ReferenceNames.Add(field.Name);
-                                    eventReference.Fields.Add(field);
-                                    add = true;
-                                }
-                            }
+                                    var allObjects = scene.GetRootGameObjects();
 
-                            if (add)
-                            {
-                                References.Add(eventReference);
+                                    for (int k = 0; k < allObjects.Length; k++)
+                                    {
+                                        var obj = allObjects[k];
+
+                                        var comps = obj.GetComponentsInChildren<MonoBehaviour>(true);
+
+                                        foreach (var comp in comps)
+                                        {
+                                            FieldInfo[] fields = comp.GetType().GetFields();
+
+                                            var eventReference = new EventReference();
+                                            eventReference.Reference = comp;
+                                            bool add = false;
+                                            foreach (var field in fields)
+                                            {
+                                                EventAttribute attrib = Attribute.GetCustomAttribute(field, typeof(EventAttribute)) as EventAttribute;
+
+                                                if (attrib != null)
+                                                {
+                                                    eventReference.Events.Add(field.GetValue(comp) as CustomEvent);
+                                                    eventReference.ReferenceNames.Add(field.Name);
+                                                    eventReference.Fields.Add(field);
+                                                    add = true;
+                                                }
+                                            }
+
+                                            if (add)
+                                            {
+                                                References.Add(eventReference);
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -377,7 +378,7 @@ public class GameEventManager : ScriptableObject
             }
         }
 
-        var scene = EditorSceneManager.GetSceneByPath(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(s)));
+        var scene = EditorSceneManager.GetSceneByPath(AssetDatabase.GetAssetPath(s));
 
         if (scene.IsValid() && !scene.isLoaded)
         {
