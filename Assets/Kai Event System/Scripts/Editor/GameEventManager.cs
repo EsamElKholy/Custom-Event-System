@@ -8,27 +8,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 [System.Serializable]
-public class SceneEvents : IComparer<SceneEvents>
-{
-    [SerializeField]
-    public SceneAsset scene;
-
-    public HashSet<CustomEvent> AllEvents = new HashSet<CustomEvent>();
-    public List<EventReference> AllEventReferences = new List<EventReference>();
-    public List<GameEventListener> AllListeners = new List<GameEventListener>();
-
-    public int Compare(SceneEvents x, SceneEvents y)
-    {
-        if (x.scene == null || y.scene == null)
-        {
-            return 0;
-        }
-
-        return x.scene.name.CompareTo(y.scene.name);
-    }
-}
-
-[System.Serializable]
 public class EventData
 {
     public CustomEvent Event;
@@ -62,26 +41,15 @@ public class EventReference
 [CreateAssetMenu(menuName = "Game Events/Game Event Manager", fileName = "New Game Event Manager")]
 public class GameEventManager : ScriptableObject
 {
-    //public List<SceneEvents> Scenes = new List<SceneEvents>();
-
+    [HideInInspector]
     public List<SceneAsset> _Scenes = new List<SceneAsset>();
+    [HideInInspector]
     public Dictionary<string, EventData> Events = new Dictionary<string, EventData>();
+    [HideInInspector]
     public List<GameEventListener> Listeners = new List<GameEventListener>();
+    [HideInInspector]
     public List<EventReference> References = new List<EventReference>();
-
-    //public SceneEvents CurrentScene;
-    // private int LastCount;
-
-    public void RefreshSceneList()
-    {
-
-    }
-
-    public void CreateNewEvent()
-    {
-
-    }
-
+    
     public void FindAllEvents()
     {
         var result = AssetDatabase.FindAssets("t:CustomEvent");
@@ -95,16 +63,6 @@ public class GameEventManager : ScriptableObject
                 Events.Add(e.name, new EventData(e.name, e));
             }
         }
-    }
-
-    public void FindEvent()
-    {
-
-    }
-
-    public void LoadEventData()
-    {
-
     }
 
     public void FindAllListeners(List<string> scenes)
@@ -203,11 +161,6 @@ public class GameEventManager : ScriptableObject
                 _Scenes.RemoveAt(index);
             }
         }
-    }
-
-    public void FindListener()
-    {
-
     }
 
     public void FindAllReferences(List<string> scenes)

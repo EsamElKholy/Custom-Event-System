@@ -222,11 +222,7 @@ public class EventManagerEditor : EditorWindow
 
     private void DrawSearchSection()
     {
-       // var temp = EditorStyles.helpBox.normal.background;
-        //EditorStyles.helpBox.normal.background = bg;
-
         GUILayout.BeginArea(searchBar.Area, EditorStyles.helpBox);
-        //EditorStyles.helpBox.normal.background = temp;
         searchBar.UpdateArea(2, 31, position.width - 6, 25);
 
         GUILayout.BeginVertical();
@@ -237,9 +233,7 @@ public class EventManagerEditor : EditorWindow
 
         if (EventManager)
         {
-            //if (Counter >= Cooldown)
             {
-                //Counter = 0;
                 if (searchString.Length == 0 && CurrentTab == 0)
                 {
                     SceneNames = new Dictionary<string, string>();
@@ -275,8 +269,6 @@ public class EventManagerEditor : EditorWindow
                     }
                 }
             }
-
-            //Counter += Time.fixedDeltaTime;
         }
         GUILayout.Space(1);
         GUILayout.BeginHorizontal();
@@ -1376,7 +1368,6 @@ public class EventManagerEditor : EditorWindow
     {
         if (EventManager)
         {
-            //if ((SceneNames.Count != EventManager._Scenes.Count))
             {
                 {
                     SceneNames = new Dictionary<string, string>();
