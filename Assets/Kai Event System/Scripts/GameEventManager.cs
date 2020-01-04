@@ -113,38 +113,33 @@ public class GameEventManager : ScriptableObject
 
         if (scenes.Count > 0)
         {
-            for (int i = 0; i < SceneManager.sceneCount; i++)
+            var activeScene = EditorSceneManager.GetActiveScene();
+            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
             {
-                if (SceneManager.GetSceneAt(i) != SceneManager.GetActiveScene())
+                if (EditorSceneManager.GetSceneAt(i) != activeScene)
                 {
                     EditorSceneManager.SaveScene(EditorSceneManager.GetSceneAt(i));
                     EditorSceneManager.CloseScene(EditorSceneManager.GetSceneAt(i), true);
+                    EditorSceneManager.SetActiveScene(activeScene);
                 }
             }
 
             for (int i = 0; i < scenes.Count; i++)
             {
-                var scene = EditorSceneManager.GetSceneByName(scenes[i]);
-
-                if (!scene.IsValid())
+                for (int j = 0; j < _Scenes.Count; j++)
                 {
-                    var res = AssetDatabase.FindAssets(scenes[i]);
-
-                    for (int j = 0; j < res.Length; j++)
+                    if (_Scenes[j].name.Equals(scenes[i]))
                     {
-                        var asset = AssetDatabase.GUIDToAssetPath(res[j]);
-
-                        if (asset.Contains(scenes[i]))
                         {
-                            EditorSceneManager.OpenScene(asset, OpenSceneMode.Additive);
+                            EditorSceneManager.OpenScene(AssetDatabase.GetAssetPath(_Scenes[j]), OpenSceneMode.Additive);
                         }
                     }
                 }
             }
 
-            for (int i = 0; i < scenes.Count; i++)
+            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
             {
-                var scene = EditorSceneManager.GetSceneByName(scenes[i]);
+                var scene = EditorSceneManager.GetSceneAt(i);
 
                 if (scene.IsValid() && scene.isLoaded)
                 {
@@ -171,7 +166,10 @@ public class GameEventManager : ScriptableObject
 
             for (int i = 0; i < _Scenes.Count; i++)
             {
-                if (_Scenes[i].name.Equals(scene))
+                var guid1 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(_Scenes[i]));
+                var guid2 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(scene));
+
+                if (guid1.Equals(guid2))
                 {
                     index = i;
 
@@ -197,38 +195,33 @@ public class GameEventManager : ScriptableObject
 
         if (scenes.Count > 0)
         {
-            for (int i = 0; i < SceneManager.sceneCount; i++)
+            var activeScene = EditorSceneManager.GetActiveScene();
+            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
             {
-                if (SceneManager.GetSceneAt(i) != SceneManager.GetActiveScene())
+                if (EditorSceneManager.GetSceneAt(i) != activeScene)
                 {
                     EditorSceneManager.SaveScene(EditorSceneManager.GetSceneAt(i));
                     EditorSceneManager.CloseScene(EditorSceneManager.GetSceneAt(i), true);
+                    EditorSceneManager.SetActiveScene(activeScene);
                 }
             }
 
             for (int i = 0; i < scenes.Count; i++)
             {
-                var scene = EditorSceneManager.GetSceneByName(scenes[i]);
-
-                if (!scene.IsValid())
+                for (int j = 0; j < _Scenes.Count; j++)
                 {
-                    var res = AssetDatabase.FindAssets(scenes[i]);
-
-                    for (int j = 0; j < res.Length; j++)
+                    if (_Scenes[j].name.Equals(scenes[i]))
                     {
-                        var asset = AssetDatabase.GUIDToAssetPath(res[j]);
-
-                        if (asset.Contains(scenes[i]))
                         {
-                            EditorSceneManager.OpenScene(asset, OpenSceneMode.Additive);
+                            EditorSceneManager.OpenScene(AssetDatabase.GetAssetPath(_Scenes[j]), OpenSceneMode.Additive);
                         }
                     }
                 }
             }
 
-            for (int i = 0; i < scenes.Count; i++)
+            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
             {
-                var scene = EditorSceneManager.GetSceneByName(scenes[i]);
+                var scene = EditorSceneManager.GetSceneAt(i);
 
                 if (scene.IsValid() && scene.isLoaded)
                 {
@@ -298,7 +291,6 @@ public class GameEventManager : ScriptableObject
 
     public List<MonoBehaviour> FindReference(CustomEvent e)
     {
-        //List<EventReference> result = new List<EventReference>();
         List<MonoBehaviour> result = new List<MonoBehaviour>();
 
         for (int i = 0; i < SceneManager.sceneCount; i++)
@@ -336,28 +328,29 @@ public class GameEventManager : ScriptableObject
         return result;
     }
 
-    public SceneStatistics GetSceneStatistics(string sceneName)
+    public SceneStatistics GetSceneStatistics(SceneAsset s)
     {
         SceneStatistics result = new SceneStatistics();
 
-        var scene = EditorSceneManager.GetSceneByName(sceneName);
-
-        if (!scene.IsValid())
+        if (s == null)
         {
-            var res = AssetDatabase.FindAssets(sceneName);
+            return result;
+        }
 
-            for (int j = 0; j < res.Length; j++)
+        for (int j = 0; j < _Scenes.Count; j++)
+        {
+            var guid1 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(_Scenes[j]));
+            var guid2 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(s));
+
+            if (guid1.Equals(guid2))
             {
-                var asset = AssetDatabase.GUIDToAssetPath(res[j]);
-
-                if (asset.Length > 0 && asset.Contains(sceneName))
                 {
-                    EditorSceneManager.OpenScene(asset, OpenSceneMode.Additive);
+                    EditorSceneManager.OpenScene(AssetDatabase.GetAssetPath(_Scenes[j]), OpenSceneMode.Additive);
                 }
             }
         }
 
-        scene = EditorSceneManager.GetSceneByName(sceneName);
+        var scene = EditorSceneManager.GetSceneByPath(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(s)));       
 
         if (scene.IsValid() && scene.isLoaded)
         {

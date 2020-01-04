@@ -43,7 +43,7 @@ public class GameEventCollection : CustomEvent
 
             for (int i = 0; i < Events.Count; i++)
             {
-                if (Events[i].name.Equals(e.name))
+                if (Events[i].GetInstanceID().Equals(e.GetInstanceID()))
                 {
                     index = i;
 

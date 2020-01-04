@@ -49,8 +49,6 @@ public class EventManagerEditor : EditorWindow
 
     private Dictionary<string, string> SceneNames = new Dictionary<string, string>();
     private string[] DropdownNames;
-    private float CoolDown = 4;
-    private float Counter = 0;
 
     private Resizer resizer;
     private SearchBar searchBar;
@@ -66,7 +64,7 @@ public class EventManagerEditor : EditorWindow
 
     private string rightPanelTitle;
     private bool showRightPanel;
-    private string selectedScene;
+    private SceneAsset selectedScene;
     private EventData selectedEvent;
     private GameEventListener selectedListener;
     private EventReference selectedReference;
@@ -82,6 +80,9 @@ public class EventManagerEditor : EditorWindow
     private GameEventCollection collectionToDeleteFrom;
 
     private SceneAsset pickedScene;
+
+    private float Cooldown = 0;
+    private float Counter = 0;
 
     [MenuItem("Custom Tools/Event Manager")]
     public static void OpenWindow()
@@ -119,6 +120,9 @@ public class EventManagerEditor : EditorWindow
             gec.Events.Add(pickedEvent);
             pickedEvent = null;
             gec = null;
+            searchString = "";
+
+            GUI.FocusControl("");
         }
 
         if (pickedScene)
@@ -128,7 +132,9 @@ public class EventManagerEditor : EditorWindow
                 bool alreadyThere = false;
                 for (int i = 0; i < EventManager._Scenes.Count; i++)
                 {
-                    if (EventManager._Scenes[i].name.Equals(pickedScene.name))
+                    var guid1 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(EventManager._Scenes[i]));
+                    var guid2 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(pickedScene));
+                    if (EventManager._Scenes[i].name.Equals(pickedScene.name) && guid1.Equals(guid2))
                     {
                         alreadyThere = true;
                         break;
@@ -141,6 +147,10 @@ public class EventManagerEditor : EditorWindow
                 }
 
                 pickedScene = null;
+
+                GUI.FocusControl("");
+
+                searchString = "";
             }
         }
 
@@ -150,6 +160,10 @@ public class EventManagerEditor : EditorWindow
 
             toBeDeletedEvent = null;
             collectionToDeleteFrom = null;
+
+            GUI.FocusControl("");
+
+            searchString = "";
         }
 
         if (toBeDeletedScene)
@@ -158,6 +172,10 @@ public class EventManagerEditor : EditorWindow
             {
                 EventManager.RemoveScene(toBeDeletedScene);
                 toBeDeletedScene = null;
+
+                GUI.FocusControl("");
+
+                searchString = "";
             }
         }
 
@@ -216,8 +234,9 @@ public class EventManagerEditor : EditorWindow
 
         if (EventManager)
         {
-            if ((SceneNames.Count != EventManager._Scenes.Count || Counter >= CoolDown))
+            //if (Counter >= Cooldown)
             {
+                Counter = 0;
                 if (searchString.Length == 0 && CurrentTab == 0)
                 {
                     SceneNames = new Dictionary<string, string>();
@@ -228,17 +247,16 @@ public class EventManagerEditor : EditorWindow
                         {
                             continue;
                         }
-
-                        if (SceneNames.ContainsKey(EventManager._Scenes[i].name) == false)
+                        var guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(EventManager._Scenes[i]));
+                        if (SceneNames.ContainsKey(guid) == false)
                         {
-                            SceneNames.Add(EventManager._Scenes[i].name, EventManager._Scenes[i].name);
+                            SceneNames.Add(guid, EventManager._Scenes[i].name);
                         }
                     }
                 }
 
-
                 DropdownNames = new string[SceneNames.Count];
-                SceneNames.Keys.CopyTo(DropdownNames, 0);
+                SceneNames.Values.CopyTo(DropdownNames, 0);
 
                 scenes = new List<SceneAsset>();
                 for (int i = 0; i < DropdownNames.Length; i++)
@@ -255,7 +273,7 @@ public class EventManagerEditor : EditorWindow
                 }
             }
 
-            Counter += Time.deltaTime;
+            Counter += Time.fixedDeltaTime;
         }
         GUILayout.BeginHorizontal();
         DrawSearchBar(searchBarArea);
@@ -343,8 +361,8 @@ public class EventManagerEditor : EditorWindow
                                 {
                                     // Right Panel
                                     showRightPanel = true;
-                                    selectedScene = scenes[i].name;
-                                    rightPanelTitle = "Scene: " + scenes[i].name + " Statistics";
+                                    selectedScene = scenes[i];
+                                    rightPanelTitle = "Scene: \"" + AssetDatabase.GetAssetPath(scenes[i]) + "\" Statistics";
                                 }
                                 scenes[i] = (SceneAsset)EditorGUILayout.ObjectField(scenes[i], typeof(SceneAsset), false, GUILayout.Width((leftDataArea.width * 2 / 3) - 37));
 
@@ -359,26 +377,7 @@ public class EventManagerEditor : EditorWindow
                                 leftPanelItemsID.Add(id);
 
                                 y += 30;
-                            }
-
-                            for (int i = 0; i < leftPanelItemsID.Count; i++)
-                            {
-                                switch (Event.current.GetTypeForControl(leftPanelItemsID[i]))
-                                {
-                                    case EventType.MouseUp:
-                                        {
-                                            if (position.Contains(Event.current.mousePosition))
-                                            {
-                                                Debug.Log(scenes[i].name);
-                                                Event.current.Use();
-                                                GUIUtility.hotControl = leftPanelItemsID[i];
-                                            }
-                                        }
-                                        break;                                    
-                                    default:
-                                        break;
-                                }
-                            }
+                            }                            
                         }
                         break;
                     case 1:
@@ -464,8 +463,9 @@ public class EventManagerEditor : EditorWindow
                                 EditorGUILayout.BeginHorizontal();
                                 bool clicked = GUILayout.Button("Find Listeners in", EditorStyles.toolbarButton);
                                 GUILayout.Space(2);
-                                RefreshSceneNames();
+                                RefreshSceneNames(true);
                                 filter = EditorGUILayout.MaskField(filter, DropdownNames, EditorStyles.toolbarPopup);
+                                RefreshSceneNames(false);
                                 List<string> selectedScenes = new List<string>();
 
                                 for (int i = 0; i < DropdownNames.Length; i++)
@@ -541,8 +541,9 @@ public class EventManagerEditor : EditorWindow
                                 EditorGUILayout.BeginHorizontal();
                                 bool clicked = GUILayout.Button("Find References in", EditorStyles.toolbarButton);
                                 GUILayout.Space(2);
-                                RefreshSceneNames();
+                                RefreshSceneNames(true);
                                 filter = EditorGUILayout.MaskField(filter, DropdownNames, EditorStyles.toolbarPopup);
+                                RefreshSceneNames(false);
 
                                 List<string> selectedScenes = new List<string>();
 
@@ -630,9 +631,7 @@ public class EventManagerEditor : EditorWindow
             default:
                 break;
         }
-    }
-    
-
+    }   
 
     Vector2 rightScroll;
     Vector2 eventScroll;
@@ -899,7 +898,7 @@ public class EventManagerEditor : EditorWindow
                             {
                                 float labelTitleWidth = rightDataArea.width / 4;
                                 float labelDataWidth = (rightDataArea.width * 3 / 4) - 20;
-                                string sceneText = "This Listener is in The Scene: \"" + selectedListener.gameObject.scene.name + "\"";
+                                string sceneText = "This Listener is in The Scene: \"" + selectedListener.gameObject.scene.path + "\"";
                                 GUILayout.BeginHorizontal();
                                 EditorGUILayout.LabelField("Scene", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth));
                                 EditorGUILayout.LabelField(sceneText, EditorStyles.helpBox, GUILayout.Width(labelDataWidth));
@@ -967,7 +966,7 @@ public class EventManagerEditor : EditorWindow
                                     float labelTitleWidth = nw / 4;
                                     float labelDataWidth = (nw * 3 / 4) - 20;
 
-                                    string sceneText = "This Reference is in The Scene: \"" + selectedReference.Reference.gameObject.scene.name + "\"";
+                                    string sceneText = "This Reference is in The Scene: \"" + selectedReference.Reference.gameObject.scene.path + "\"";
                                     GUILayout.BeginHorizontal();
                                     EditorGUILayout.LabelField("Scene", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth), GUILayout.Height(50));
                                     EditorGUILayout.LabelField(sceneText, EditorStyles.helpBox, GUILayout.Width(labelDataWidth), GUILayout.Height(50));
@@ -1066,10 +1065,10 @@ public class EventManagerEditor : EditorWindow
                                 {
                                     continue;
                                 }
-
-                                if (SceneNames.ContainsKey(EventManager._Scenes[i].name) == false)
+                                var guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(EventManager._Scenes[i]));
+                                if (SceneNames.ContainsKey(guid) == false)
                                 {
-                                    SceneNames.Add(EventManager._Scenes[i].name, EventManager._Scenes[i].name);
+                                    SceneNames.Add(guid, EventManager._Scenes[i].name);
                                 }
                             }
 
@@ -1080,7 +1079,7 @@ public class EventManagerEditor : EditorWindow
                                 {
                                     if (scenes.ContainsKey(item.Key) == false)
                                     {
-                                        scenes.Add(item.Key, item.Key);
+                                        scenes.Add(item.Key, item.Value);
                                     }
                                 }
                             }
@@ -1090,7 +1089,7 @@ public class EventManagerEditor : EditorWindow
                             {
                                 if (SceneNames.ContainsKey(item.Key) == false)
                                 {
-                                    SceneNames.Add(item.Key, item.Key);
+                                    SceneNames.Add(item.Key, item.Value);
                                 }
                             }
                         }
@@ -1264,13 +1263,12 @@ public class EventManagerEditor : EditorWindow
         return result;
     }
 
-    private void RefreshSceneNames()
+    private void RefreshSceneNames(bool path)
     {
         if (EventManager)
         {
-            if ((SceneNames.Count != EventManager._Scenes.Count))
+            //if ((SceneNames.Count != EventManager._Scenes.Count))
             {
-                //if (searchString.Length == 0 && CurrentTab == 0)
                 {
                     SceneNames = new Dictionary<string, string>();
 
@@ -1280,31 +1278,23 @@ public class EventManagerEditor : EditorWindow
                         {
                             continue;
                         }
-
-                        if (SceneNames.ContainsKey(EventManager._Scenes[i].name) == false)
+                        var guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(EventManager._Scenes[i]));
+                        if (SceneNames.ContainsKey(guid) == false)
                         {
-                            SceneNames.Add(EventManager._Scenes[i].name, EventManager._Scenes[i].name);
+                            if (path)
+                            {
+                                SceneNames.Add(guid, AssetDatabase.GetAssetPath(EventManager._Scenes[i]));
+                            }
+                            else
+                            {
+                                SceneNames.Add(guid, EventManager._Scenes[i].name);
+                            }
                         }
                     }
                 }
-
-
+                
                 DropdownNames = new string[SceneNames.Count];
-                SceneNames.Keys.CopyTo(DropdownNames, 0);
-
-                scenes = new List<SceneAsset>();
-                for (int i = 0; i < DropdownNames.Length; i++)
-                {
-                    for (int j = 0; j < EventManager._Scenes.Count; j++)
-                    {
-                        if (EventManager._Scenes[j] && EventManager._Scenes[j].name.Equals(DropdownNames[i]))
-                        {
-                            scenes.Add(EventManager._Scenes[j]);
-
-                            break;
-                        }
-                    }
-                }
+                SceneNames.Values.CopyTo(DropdownNames, 0);
             }
 
         }
