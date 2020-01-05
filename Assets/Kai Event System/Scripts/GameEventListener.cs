@@ -3,42 +3,45 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-[ExecuteInEditMode]
-public class GameEventListener : MonoBehaviour
+namespace KAI
 {
-    [EventAttribute]public CustomEvent Event;
-    public UnityEvent response;
-
-    public void OnEventRaised()
+    [ExecuteInEditMode]
+    public class GameEventListener : MonoBehaviour
     {
-        response.Invoke();
-    }
+        [EventAttribute] public CustomEvent Event;
+        public UnityEvent response;
 
-    private void Awake()
-    {
-        if (!Event)
-            return;
-        Event.RegisterListener(this);
-    }
+        public void OnEventRaised()
+        {
+            response.Invoke();
+        }
 
-    private void Update()
-    {
-        if (!Event)
-            return;
-        Event.RegisterListener(this);
-    }
+        private void Awake()
+        {
+            if (!Event)
+                return;
+            Event.RegisterListener(this);
+        }
 
-    void OnEnable()
-    {
-        if (!Event)
-            return;
-        Event.RegisterListener(this);
-    }
+        private void Update()
+        {
+            if (!Event)
+                return;
+            Event.RegisterListener(this);
+        }
 
-    private void OnDisable()
-    {
-        if (!Event)
-            return;
-        Event.UnRegisterListener(this);
+        void OnEnable()
+        {
+            if (!Event)
+                return;
+            Event.RegisterListener(this);
+        }
+
+        private void OnDisable()
+        {
+            if (!Event)
+                return;
+            Event.UnRegisterListener(this);
+        }
     }
 }

@@ -7,232 +7,235 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-[System.Serializable]
-public class EventData
+namespace KAI
 {
-    public CustomEvent Event;
-    public SceneAsset Owner;
-    public string Name;
-    public List<EventReference> References = new List<EventReference>();
-    public List<GameEventListener> Listeners = new List<GameEventListener>();
-
-    public EventData(string name, CustomEvent e)
+    [System.Serializable]
+    public class EventData
     {
-        Name = name;
-        Event = e;
-    }
-}
+        public CustomEvent Event;
+        public SceneAsset Owner;
+        public string Name;
+        public List<EventReference> References = new List<EventReference>();
+        public List<GameEventListener> Listeners = new List<GameEventListener>();
 
-public struct SceneStatistics
-{
-    public string NumberOfEvents;
-    public string NumberOfListeners;
-    public string NumberOfReferences;
-}
-
-public class EventReference
-{
-    public MonoBehaviour Reference;
-    public List<string> ReferenceNames = new List<string>();
-    public List<FieldInfo> Fields = new List<FieldInfo>();
-    public List<CustomEvent> Events = new List<CustomEvent>();
-}
-
-[CreateAssetMenu(menuName = "Game Events/Game Event Manager", fileName = "New Game Event Manager")]
-public class GameEventManager : ScriptableObject
-{
-    [HideInInspector]
-    public List<SceneAsset> _Scenes = new List<SceneAsset>();
-    [HideInInspector]
-    public Dictionary<string, EventData> Events = new Dictionary<string, EventData>();
-    [HideInInspector]
-    public List<GameEventListener> Listeners = new List<GameEventListener>();
-    [HideInInspector]
-    public List<EventReference> References = new List<EventReference>();
-    
-    public void FindAllEvents()
-    {
-        var result = AssetDatabase.FindAssets("t:CustomEvent");
-
-        for (int i = 0; i < result.Length; i++)
+        public EventData(string name, CustomEvent e)
         {
-            var e = (CustomEvent)AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(result[i]), typeof(CustomEvent));
-
-            if (Events.ContainsKey(e.name) == false)
-            {
-                Events.Add(e.name, new EventData(e.name, e));
-            }
+            Name = name;
+            Event = e;
         }
     }
 
-    public void FindAllListeners(List<string> scenes)
+    public struct SceneStatistics
     {
-        Listeners = new List<GameEventListener>();
+        public string NumberOfEvents;
+        public string NumberOfListeners;
+        public string NumberOfReferences;
+    }
 
-        if (scenes.Count > 0)
+    public class EventReference
+    {
+        public MonoBehaviour Reference;
+        public List<string> ReferenceNames = new List<string>();
+        public List<FieldInfo> Fields = new List<FieldInfo>();
+        public List<CustomEvent> Events = new List<CustomEvent>();
+    }
+
+    [CreateAssetMenu(menuName = "Game Events/Game Event Manager", fileName = "New Game Event Manager")]
+    public class GameEventManager : ScriptableObject
+    {
+        [HideInInspector]
+        public List<SceneAsset> _Scenes = new List<SceneAsset>();
+        [HideInInspector]
+        public Dictionary<string, EventData> Events = new Dictionary<string, EventData>();
+        [HideInInspector]
+        public List<GameEventListener> Listeners = new List<GameEventListener>();
+        [HideInInspector]
+        public List<EventReference> References = new List<EventReference>();
+
+        public void FindAllEvents()
         {
-            var activeScene = EditorSceneManager.GetActiveScene();
-            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
-            {
-                if (EditorSceneManager.GetSceneAt(i) != activeScene && EditorSceneManager.GetSceneAt(i).isLoaded)
-                {
-                    if (EditorSceneManager.GetSceneAt(i).isLoaded)
-                    {
-                        EditorSceneManager.SaveScene(EditorSceneManager.GetSceneAt(i));
-                    }
-                    else
-                    {
-                        EditorSceneManager.LoadScene(EditorSceneManager.GetSceneAt(i).path, LoadSceneMode.Additive);
-                    }
+            var result = AssetDatabase.FindAssets("t:CustomEvent");
 
-                    EditorSceneManager.SetActiveScene(activeScene);
+            for (int i = 0; i < result.Length; i++)
+            {
+                var e = (CustomEvent)AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(result[i]), typeof(CustomEvent));
+
+                if (Events.ContainsKey(e.name) == false)
+                {
+                    Events.Add(e.name, new EventData(e.name, e));
                 }
             }
+        }
 
-            for (int i = 0; i < scenes.Count; i++)
+        public void FindAllListeners(List<string> scenes)
+        {
+            Listeners = new List<GameEventListener>();
+
+            if (scenes.Count > 0)
             {
-                for (int j = 0; j < _Scenes.Count; j++)
+                var activeScene = EditorSceneManager.GetActiveScene();
+                for (int i = 0; i < EditorSceneManager.sceneCount; i++)
                 {
-                    var guid1 = AssetDatabase.AssetPathToGUID(scenes[i]);
-                    var guid2 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(_Scenes[j]));
-
+                    if (EditorSceneManager.GetSceneAt(i) != activeScene && EditorSceneManager.GetSceneAt(i).isLoaded)
                     {
-                        if (guid1.Equals(guid2))                     
+                        if (EditorSceneManager.GetSceneAt(i).isLoaded)
                         {
-                            var scene = EditorSceneManager.OpenScene(scenes[i], OpenSceneMode.Additive);
+                            EditorSceneManager.SaveScene(EditorSceneManager.GetSceneAt(i));
+                        }
+                        else
+                        {
+                            EditorSceneManager.LoadScene(EditorSceneManager.GetSceneAt(i).path, LoadSceneMode.Additive);
+                        }
 
-                            //for (int k = 0; k < scenes.Count; k++)
+                        EditorSceneManager.SetActiveScene(activeScene);
+                    }
+                }
+
+                for (int i = 0; i < scenes.Count; i++)
+                {
+                    for (int j = 0; j < _Scenes.Count; j++)
+                    {
+                        var guid1 = AssetDatabase.AssetPathToGUID(scenes[i]);
+                        var guid2 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(_Scenes[j]));
+
+                        {
+                            if (guid1.Equals(guid2))
                             {
-                                if (scene.IsValid() && scene.isLoaded)
+                                var scene = EditorSceneManager.OpenScene(scenes[i], OpenSceneMode.Additive);
+
+                                //for (int k = 0; k < scenes.Count; k++)
                                 {
-                                    var allObjects = scene.GetRootGameObjects();
-
-                                    for (int h = 0; h < allObjects.Length; h++)
+                                    if (scene.IsValid() && scene.isLoaded)
                                     {
-                                        var obj = allObjects[h];
+                                        var allObjects = scene.GetRootGameObjects();
 
-                                        var comps = obj.GetComponentsInChildren<GameEventListener>(true);
+                                        for (int h = 0; h < allObjects.Length; h++)
+                                        {
+                                            var obj = allObjects[h];
 
-                                        Listeners.AddRange(comps);
+                                            var comps = obj.GetComponentsInChildren<GameEventListener>(true);
+
+                                            Listeners.AddRange(comps);
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-            }            
-        }
-    }
-
-    public void RemoveScene(SceneAsset scene)
-    {
-        if (scene)
-        {
-            int index = -1;
-
-            for (int i = 0; i < _Scenes.Count; i++)
-            {
-                var guid1 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(_Scenes[i]));
-                var guid2 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(scene));
-
-                if (guid1.Equals(guid2))
-                {
-                    index = i;
-
-                    break;
-                }
-            }
-
-            if (index >= 0)
-            {
-                var temp = EditorSceneManager.GetSceneByPath(AssetDatabase.GetAssetPath(scene));
-                {
-                    if (temp.IsValid() && temp.isLoaded)
-                    {
-                        EditorSceneManager.SaveScene(temp);
-                    }
-
-                    if (temp.IsValid())
-                    {
-                        EditorSceneManager.CloseScene(temp, true);
-                    }                    
-                }
-
-                _Scenes.RemoveAt(index);
             }
         }
-    }
 
-    public void FindAllReferences(List<string> scenes)
-    {
-        References = new List<EventReference>();
-
-        if (scenes.Count > 0)
+        public void RemoveScene(SceneAsset scene)
         {
-            var activeScene = EditorSceneManager.GetActiveScene();
-            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
+            if (scene)
             {
-                if (EditorSceneManager.GetSceneAt(i) != activeScene && EditorSceneManager.GetSceneAt(i).isLoaded)
-                {
-                    if (EditorSceneManager.GetSceneAt(i).isLoaded)
-                    {
-                        EditorSceneManager.SaveScene(EditorSceneManager.GetSceneAt(i));
-                    }
-                    else
-                    {
-                        EditorSceneManager.LoadScene(EditorSceneManager.GetSceneAt(i).path, LoadSceneMode.Additive);
-                    }
+                int index = -1;
 
-                    EditorSceneManager.SetActiveScene(activeScene);
+                for (int i = 0; i < _Scenes.Count; i++)
+                {
+                    var guid1 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(_Scenes[i]));
+                    var guid2 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(scene));
+
+                    if (guid1.Equals(guid2))
+                    {
+                        index = i;
+
+                        break;
+                    }
                 }
-            }
 
-            for (int i = 0; i < scenes.Count; i++)
-            {
-                for (int j = 0; j < _Scenes.Count; j++)
+                if (index >= 0)
                 {
+                    var temp = EditorSceneManager.GetSceneByPath(AssetDatabase.GetAssetPath(scene));
                     {
-                        var guid1 = AssetDatabase.AssetPathToGUID(scenes[i]);
-                        var guid2 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(_Scenes[j]));
-
-                        if (guid1.Equals(guid2))
+                        if (temp.IsValid() && temp.isLoaded)
                         {
-                            var scene = EditorSceneManager.OpenScene(scenes[i], OpenSceneMode.Additive);
+                            EditorSceneManager.SaveScene(temp);
+                        }
 
+                        if (temp.IsValid())
+                        {
+                            EditorSceneManager.CloseScene(temp, true);
+                        }
+                    }
+
+                    _Scenes.RemoveAt(index);
+                }
+            }
+        }
+
+        public void FindAllReferences(List<string> scenes)
+        {
+            References = new List<EventReference>();
+
+            if (scenes.Count > 0)
+            {
+                var activeScene = EditorSceneManager.GetActiveScene();
+                for (int i = 0; i < EditorSceneManager.sceneCount; i++)
+                {
+                    if (EditorSceneManager.GetSceneAt(i) != activeScene && EditorSceneManager.GetSceneAt(i).isLoaded)
+                    {
+                        if (EditorSceneManager.GetSceneAt(i).isLoaded)
+                        {
+                            EditorSceneManager.SaveScene(EditorSceneManager.GetSceneAt(i));
+                        }
+                        else
+                        {
+                            EditorSceneManager.LoadScene(EditorSceneManager.GetSceneAt(i).path, LoadSceneMode.Additive);
+                        }
+
+                        EditorSceneManager.SetActiveScene(activeScene);
+                    }
+                }
+
+                for (int i = 0; i < scenes.Count; i++)
+                {
+                    for (int j = 0; j < _Scenes.Count; j++)
+                    {
+                        {
+                            var guid1 = AssetDatabase.AssetPathToGUID(scenes[i]);
+                            var guid2 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(_Scenes[j]));
+
+                            if (guid1.Equals(guid2))
                             {
-                                if (scene.IsValid() && scene.isLoaded)
+                                var scene = EditorSceneManager.OpenScene(scenes[i], OpenSceneMode.Additive);
+
                                 {
-                                    var allObjects = scene.GetRootGameObjects();
-
-                                    for (int k = 0; k < allObjects.Length; k++)
+                                    if (scene.IsValid() && scene.isLoaded)
                                     {
-                                        var obj = allObjects[k];
+                                        var allObjects = scene.GetRootGameObjects();
 
-                                        var comps = obj.GetComponentsInChildren<MonoBehaviour>(true);
-
-                                        foreach (var comp in comps)
+                                        for (int k = 0; k < allObjects.Length; k++)
                                         {
-                                            FieldInfo[] fields = comp.GetType().GetFields();
+                                            var obj = allObjects[k];
 
-                                            var eventReference = new EventReference();
-                                            eventReference.Reference = comp;
-                                            bool add = false;
-                                            foreach (var field in fields)
+                                            var comps = obj.GetComponentsInChildren<MonoBehaviour>(true);
+
+                                            foreach (var comp in comps)
                                             {
-                                                EventAttribute attrib = Attribute.GetCustomAttribute(field, typeof(EventAttribute)) as EventAttribute;
+                                                FieldInfo[] fields = comp.GetType().GetFields();
 
-                                                if (attrib != null)
+                                                var eventReference = new EventReference();
+                                                eventReference.Reference = comp;
+                                                bool add = false;
+                                                foreach (var field in fields)
                                                 {
-                                                    eventReference.Events.Add(field.GetValue(comp) as CustomEvent);
-                                                    eventReference.ReferenceNames.Add(field.Name);
-                                                    eventReference.Fields.Add(field);
-                                                    add = true;
-                                                }
-                                            }
+                                                    EventAttribute attrib = Attribute.GetCustomAttribute(field, typeof(EventAttribute)) as EventAttribute;
 
-                                            if (add)
-                                            {
-                                                References.Add(eventReference);
+                                                    if (attrib != null)
+                                                    {
+                                                        eventReference.Events.Add(field.GetValue(comp) as CustomEvent);
+                                                        eventReference.ReferenceNames.Add(field.Name);
+                                                        eventReference.Fields.Add(field);
+                                                        add = true;
+                                                    }
+                                                }
+
+                                                if (add)
+                                                {
+                                                    References.Add(eventReference);
+                                                }
                                             }
                                         }
                                     }
@@ -243,52 +246,16 @@ public class GameEventManager : ScriptableObject
                 }
             }
         }
-    }
 
-    public void RefreshReference(EventReference er)
-    {
-        if (er != null)
+        public void RefreshReference(EventReference er)
         {
-            er.ReferenceNames = new List<string>();
-            er.Events = new List<CustomEvent>();
-            er.Fields = new List<FieldInfo>();
+            if (er != null)
             {
-                FieldInfo[] fields = er.Reference.GetType().GetFields();
-
-                foreach (var field in fields)
+                er.ReferenceNames = new List<string>();
+                er.Events = new List<CustomEvent>();
+                er.Fields = new List<FieldInfo>();
                 {
-                    EventAttribute attrib = Attribute.GetCustomAttribute(field, typeof(EventAttribute)) as EventAttribute;
-
-                    if (attrib != null)
-                    {
-                        er.Events.Add(field.GetValue(er.Reference) as CustomEvent);
-                        er.ReferenceNames.Add(field.Name);
-                        er.Fields.Add(field);
-                    }
-                }                
-            }
-        }
-    }
-
-    public List<MonoBehaviour> FindReference(CustomEvent e)
-    {
-        List<MonoBehaviour> result = new List<MonoBehaviour>();
-
-        for (int i = 0; i < SceneManager.sceneCount; i++)
-        {
-            var scene = SceneManager.GetSceneAt(i);
-
-            var allObjects = scene.GetRootGameObjects();
-
-            for (int j = 0; j < allObjects.Length; j++)
-            {
-                var obj = allObjects[j];
-
-                var comps = obj.GetComponentsInChildren<MonoBehaviour>(true);
-
-                foreach (var comp in comps)
-                {
-                    FieldInfo[] fields = comp.GetType().GetFields();
+                    FieldInfo[] fields = er.Reference.GetType().GetFields();
 
                     foreach (var field in fields)
                     {
@@ -296,85 +263,121 @@ public class GameEventManager : ScriptableObject
 
                         if (attrib != null)
                         {
-                            if (field.GetValue(comp) as CustomEvent != null && (field.GetValue(comp) as CustomEvent).name.Equals(e.name))
-                            {
-                                result.Add(comp);
-                            }
+                            er.Events.Add(field.GetValue(er.Reference) as CustomEvent);
+                            er.ReferenceNames.Add(field.Name);
+                            er.Fields.Add(field);
                         }
                     }
                 }
             }
         }
 
-        return result;
-    }
-
-    public SceneStatistics GetSceneStatistics(SceneAsset s)
-    {
-        SceneStatistics result = new SceneStatistics();
-
-        if (s == null)
+        public List<MonoBehaviour> FindReference(CustomEvent e)
         {
+            List<MonoBehaviour> result = new List<MonoBehaviour>();
+
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var scene = SceneManager.GetSceneAt(i);
+
+                var allObjects = scene.GetRootGameObjects();
+
+                for (int j = 0; j < allObjects.Length; j++)
+                {
+                    var obj = allObjects[j];
+
+                    var comps = obj.GetComponentsInChildren<MonoBehaviour>(true);
+
+                    foreach (var comp in comps)
+                    {
+                        FieldInfo[] fields = comp.GetType().GetFields();
+
+                        foreach (var field in fields)
+                        {
+                            EventAttribute attrib = Attribute.GetCustomAttribute(field, typeof(EventAttribute)) as EventAttribute;
+
+                            if (attrib != null)
+                            {
+                                if (field.GetValue(comp) as CustomEvent != null && (field.GetValue(comp) as CustomEvent).name.Equals(e.name))
+                                {
+                                    result.Add(comp);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             return result;
         }
 
-        for (int j = 0; j < _Scenes.Count; j++)
+        public SceneStatistics GetSceneStatistics(SceneAsset s)
         {
-            var guid1 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(_Scenes[j]));
-            var guid2 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(s));
+            SceneStatistics result = new SceneStatistics();
 
-            if (guid1.Equals(guid2))
+            if (s == null)
             {
+                return result;
+            }
+
+            for (int j = 0; j < _Scenes.Count; j++)
+            {
+                var guid1 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(_Scenes[j]));
+                var guid2 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(s));
+
+                if (guid1.Equals(guid2))
                 {
-                    EditorSceneManager.OpenScene(AssetDatabase.GetAssetPath(_Scenes[j]), OpenSceneMode.Additive);
+                    {
+                        EditorSceneManager.OpenScene(AssetDatabase.GetAssetPath(_Scenes[j]), OpenSceneMode.Additive);
+                    }
                 }
             }
-        }
 
-        var scene = EditorSceneManager.GetSceneByPath(AssetDatabase.GetAssetPath(s));
+            var scene = EditorSceneManager.GetSceneByPath(AssetDatabase.GetAssetPath(s));
 
-        if (scene.IsValid() && !scene.isLoaded)
-        {
-            EditorSceneManager.LoadScene(scene.path);
-        }
-
-        if (scene.IsValid() && scene.isLoaded)
-        {
-            var allObjects = scene.GetRootGameObjects();
-
-            for (int j = 0; j < allObjects.Length; j++)
+            if (scene.IsValid() && !scene.isLoaded)
             {
-                var obj = allObjects[j];
+                EditorSceneManager.LoadScene(scene.path);
+            }
 
-                var comps = obj.GetComponentsInChildren<GameEventListener>(true);
+            if (scene.IsValid() && scene.isLoaded)
+            {
+                var allObjects = scene.GetRootGameObjects();
 
-                result.NumberOfListeners = comps.Length.ToString() + " Listeners";
-                int eventCount = 0;
-                int referenceCount = 0;
-                foreach (var comp in comps)
+                for (int j = 0; j < allObjects.Length; j++)
                 {
-                    FieldInfo[] fields = comp.GetType().GetFields();
+                    var obj = allObjects[j];
 
-                    foreach (var field in fields)
+                    var comps = obj.GetComponentsInChildren<GameEventListener>(true);
+
+                    result.NumberOfListeners = comps.Length.ToString() + " Listeners";
+                    int eventCount = 0;
+                    int referenceCount = 0;
+                    foreach (var comp in comps)
                     {
-                        EventAttribute attrib = Attribute.GetCustomAttribute(field, typeof(EventAttribute)) as EventAttribute;
+                        FieldInfo[] fields = comp.GetType().GetFields();
 
-                        if (attrib != null)
+                        foreach (var field in fields)
                         {
-                            referenceCount++;
-                            if (field.GetValue(comp) as CustomEvent != null)
+                            EventAttribute attrib = Attribute.GetCustomAttribute(field, typeof(EventAttribute)) as EventAttribute;
+
+                            if (attrib != null)
                             {
-                                eventCount++;
+                                referenceCount++;
+                                if (field.GetValue(comp) as CustomEvent != null)
+                                {
+                                    eventCount++;
+                                }
                             }
                         }
                     }
+
+                    result.NumberOfEvents = eventCount + " Events";
+                    result.NumberOfReferences = referenceCount + " Event References";
                 }
-
-                result.NumberOfEvents = eventCount + " Events";
-                result.NumberOfReferences = referenceCount + " Event References";
             }
-        }
 
-        return result;
+            return result;
+        }
     }
 }

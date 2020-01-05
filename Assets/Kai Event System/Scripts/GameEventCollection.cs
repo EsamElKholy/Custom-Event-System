@@ -2,58 +2,61 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Game Events/Game Event Collection", fileName = "New Game Event Collection")]
-public class GameEventCollection : CustomEvent
+namespace KAI
 {
-    public List<GameEvent> Events = new List<GameEvent>();
-
-    private void OnEnable()
+    [CreateAssetMenu(menuName = "Game Events/Game Event Collection", fileName = "New Game Event Collection")]
+    public class GameEventCollection : CustomEvent
     {
-        Type = CustomEventType.Game_Event_Collection;
-    }
+        public List<GameEvent> Events = new List<GameEvent>();
 
-    public override void Raise()
-    {
-        for (int i = 0; i < Events.Count; i++)
+        private void OnEnable()
         {
-            if (Events[i])
-            {
-                Events[i].Raise();
-            }
+            Type = CustomEventType.Game_Event_Collection;
         }
 
-        for (int i = listeners.Count - 1; i >= 0; i--)
+        public override void Raise()
         {
-            listeners[i].OnEventRaised();
-        }
-    }
-
-    public override IEnumerator RaiseAfterDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-
-        Raise();
-    }
-
-    public void RemoveEvent(GameEvent e)
-    {
-        if (e)
-        {
-            int index = -1;
-
             for (int i = 0; i < Events.Count; i++)
             {
-                if (Events[i].GetInstanceID().Equals(e.GetInstanceID()))
+                if (Events[i])
                 {
-                    index = i;
-
-                    break;
+                    Events[i].Raise();
                 }
             }
 
-            if (index >= 0)
+            for (int i = listeners.Count - 1; i >= 0; i--)
             {
-                Events.RemoveAt(index);
+                listeners[i].OnEventRaised();
+            }
+        }
+
+        public override IEnumerator RaiseAfterDelay(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+
+            Raise();
+        }
+
+        public void RemoveEvent(GameEvent e)
+        {
+            if (e)
+            {
+                int index = -1;
+
+                for (int i = 0; i < Events.Count; i++)
+                {
+                    if (Events[i].GetInstanceID().Equals(e.GetInstanceID()))
+                    {
+                        index = i;
+
+                        break;
+                    }
+                }
+
+                if (index >= 0)
+                {
+                    Events.RemoveAt(index);
+                }
             }
         }
     }

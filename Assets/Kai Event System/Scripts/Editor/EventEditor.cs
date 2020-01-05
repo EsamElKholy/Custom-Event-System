@@ -1,28 +1,31 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(GameEvent))]
-public class EventEditor : Editor
+namespace KAI
 {
-    private bool UseInEditMode;
-
-    public override void OnInspectorGUI()
+    [CustomEditor(typeof(GameEvent))]
+    public class EventEditor : Editor
     {
-        base.OnInspectorGUI();
+        private bool UseInEditMode;
 
-        EditorGUILayout.Space();
-        UseInEditMode = GUILayout.Toggle(UseInEditMode, "Use In Edit Mode");
-        EditorGUILayout.Space();
-
-        GameEvent e = target as GameEvent;
-
-        if (GUILayout.Button("Raise"))
+        public override void OnInspectorGUI()
         {
-            if ((UseInEditMode && !Application.isPlaying)
-                || (!UseInEditMode && Application.isPlaying))
+            base.OnInspectorGUI();
+
+            EditorGUILayout.Space();
+            UseInEditMode = GUILayout.Toggle(UseInEditMode, "Use In Edit Mode");
+            EditorGUILayout.Space();
+
+            GameEvent e = target as GameEvent;
+
+            if (GUILayout.Button("Raise"))
             {
-                e.Raise();
-            }            
+                if ((UseInEditMode && !Application.isPlaying)
+                    || (!UseInEditMode && Application.isPlaying))
+                {
+                    e.Raise();
+                }
+            }
         }
     }
 }

@@ -3,26 +3,29 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(GameEventCollection))]
-public class EventCollectionEditor : Editor
+namespace KAI
 {
-    private bool UseInEditMode;
-    public override void OnInspectorGUI()
+    [CustomEditor(typeof(GameEventCollection))]
+    public class EventCollectionEditor : Editor
     {
-        base.OnInspectorGUI();
-
-        EditorGUILayout.Space();
-        UseInEditMode = GUILayout.Toggle(UseInEditMode, "Use In Edit Mode");
-        EditorGUILayout.Space();
-
-        GameEventCollection e = target as GameEventCollection;
-
-        if (GUILayout.Button("Raise"))
+        private bool UseInEditMode;
+        public override void OnInspectorGUI()
         {
-            if ((UseInEditMode && !Application.isPlaying)
-                || (!UseInEditMode && Application.isPlaying))
+            base.OnInspectorGUI();
+
+            EditorGUILayout.Space();
+            UseInEditMode = GUILayout.Toggle(UseInEditMode, "Use In Edit Mode");
+            EditorGUILayout.Space();
+
+            GameEventCollection e = target as GameEventCollection;
+
+            if (GUILayout.Button("Raise"))
             {
-                e.Raise();
+                if ((UseInEditMode && !Application.isPlaying)
+                    || (!UseInEditMode && Application.isPlaying))
+                {
+                    e.Raise();
+                }
             }
         }
     }

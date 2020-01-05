@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using KAI;
 public class NewBehaviourScript : MonoBehaviour
 {
     [EventAttribute] public CustomEvent e1;
