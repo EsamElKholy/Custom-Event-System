@@ -8,7 +8,7 @@ namespace KAI
     [ExecuteInEditMode]
     public class GameEventListener : MonoBehaviour
     {
-        [EventAttribute] public CustomEvent Event;
+        [KAIEvent] public CustomEvent Event;
         public UnityEvent response;
 
         public void OnEventRaised()

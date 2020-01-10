@@ -16,16 +16,8 @@ namespace KAI
         {
             for (int i = listeners.Count - 1; i >= 0; i--)
             {
-                //Debug.Log(listeners[i].gameObject.name);
                 listeners[i].OnEventRaised();
             }
-        }
-
-        public override IEnumerator RaiseAfterDelay(float delay)
-        {
-            yield return new WaitForSeconds(delay);
-
-            Raise();
         }
     }
 }

@@ -10,11 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d711efa17f01f694497ee2f1373a0f8c, type: 3}
-  m_Name: event
+  m_Name: E_ColorChange_Blue
   m_EditorClassIdentifier: 
   listeners:
   - {fileID: 0}
-  Description: 'sdsdsds
-
-'
+  Description: 
   Type: 0

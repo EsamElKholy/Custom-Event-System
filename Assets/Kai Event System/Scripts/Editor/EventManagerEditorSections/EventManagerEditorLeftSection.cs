@@ -260,21 +260,24 @@ namespace KAI
                 {
                     foreach (var e in EventManager.Events)
                     {
-                        GUILayout.BeginArea(new Rect(0, y + 27, nw, 30), EditorStyles.helpBox);
-                        GUILayout.Space(3);
-                        EditorGUILayout.BeginHorizontal();
-                        if (GUILayout.Button(e.Value.Event.name, GUILayout.Width(leftDataArea.width / 4 - 15)))
+                        if (e.Value != null && e.Value.Event)
                         {
-                            // Right Panel
-                            GUI.FocusControl("");
-                            selectedEvent = e.Value;
-                            showRightPanel = true;
-                            rightPanelTitle = "Event: " + selectedEvent.Name + " Details";
+                            GUILayout.BeginArea(new Rect(0, y + 27, nw, 30), EditorStyles.helpBox);
+                            GUILayout.Space(3);
+                            EditorGUILayout.BeginHorizontal();
+                            if (GUILayout.Button(e.Value.Event.name, GUILayout.Width(leftDataArea.width / 4 - 15)))
+                            {
+                                // Right Panel
+                                GUI.FocusControl("");
+                                selectedEvent = e.Value;
+                                showRightPanel = true;
+                                rightPanelTitle = "Event: " + selectedEvent.Name + " Details";
+                            }
+                            EditorGUILayout.ObjectField(e.Value.Event, typeof(CustomEvent), false, GUILayout.Width((leftDataArea.width * 3 / 4) - nm));
+                            EditorGUILayout.EndHorizontal();
+                            GUILayout.EndArea();
+                            y += 32;
                         }
-                        EditorGUILayout.ObjectField(e.Value.Event, typeof(CustomEvent), false, GUILayout.Width((leftDataArea.width * 3 / 4) - nm));
-                        EditorGUILayout.EndHorizontal();
-                        GUILayout.EndArea();
-                        y += 32;
                     }
                 }
             }

@@ -30,13 +30,6 @@ namespace KAI
             }
         }
 
-        public override IEnumerator RaiseAfterDelay(float delay)
-        {
-            yield return new WaitForSeconds(delay);
-
-            Raise();
-        }
-
         public void RemoveEvent(GameEvent e)
         {
             if (e)

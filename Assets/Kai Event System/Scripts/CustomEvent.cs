@@ -12,7 +12,7 @@ namespace KAI
     }
 
     [AttributeUsage(AttributeTargets.Field)]
-    public class EventAttribute : Attribute
+    public class KAIEvent : Attribute
     { }
 
     public class CustomEvent : ScriptableObject
@@ -26,14 +26,22 @@ namespace KAI
         public virtual void Raise()
         { }
 
-        public virtual IEnumerator RaiseAfterDelay(float delay) { yield return null; }
-
         public virtual void RegisterListener(GameEventListener listener)
         {
+            for (int i = 0; i < listeners.Count; i++)
+            {
+                if (listeners[i] == null)
+                {
+                    listeners.RemoveAt(i);
+
+                    i--;
+                }
+            }
+
             bool duplicate = false;
             for (int i = 0; i < listeners.Count; i++)
             {
-                if (listeners[i] == listener)
+                if (listener && listeners[i] == listener)
                 {
                     duplicate = true;
 

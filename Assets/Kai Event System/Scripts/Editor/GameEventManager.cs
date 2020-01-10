@@ -221,7 +221,7 @@ namespace KAI
                                                 bool add = false;
                                                 foreach (var field in fields)
                                                 {
-                                                    EventAttribute attrib = Attribute.GetCustomAttribute(field, typeof(EventAttribute)) as EventAttribute;
+                                                    KAIEvent attrib = Attribute.GetCustomAttribute(field, typeof(KAIEvent)) as KAIEvent;
 
                                                     if (attrib != null)
                                                     {
@@ -259,7 +259,7 @@ namespace KAI
 
                     foreach (var field in fields)
                     {
-                        EventAttribute attrib = Attribute.GetCustomAttribute(field, typeof(EventAttribute)) as EventAttribute;
+                        KAIEvent attrib = Attribute.GetCustomAttribute(field, typeof(KAIEvent)) as KAIEvent;
 
                         if (attrib != null)
                         {
@@ -294,7 +294,7 @@ namespace KAI
 
                         foreach (var field in fields)
                         {
-                            EventAttribute attrib = Attribute.GetCustomAttribute(field, typeof(EventAttribute)) as EventAttribute;
+                            KAIEvent attrib = Attribute.GetCustomAttribute(field, typeof(KAIEvent)) as KAIEvent;
 
                             if (attrib != null)
                             {
@@ -343,23 +343,25 @@ namespace KAI
             if (scene.IsValid() && scene.isLoaded)
             {
                 var allObjects = scene.GetRootGameObjects();
+                int eventCount = 0;
+                int referenceCount = 0;
+                int listenerCount = 0;
 
                 for (int j = 0; j < allObjects.Length; j++)
                 {
                     var obj = allObjects[j];
 
-                    var comps = obj.GetComponentsInChildren<GameEventListener>(true);
-
-                    result.NumberOfListeners = comps.Length.ToString() + " Listeners";
-                    int eventCount = 0;
-                    int referenceCount = 0;
-                    foreach (var comp in comps)
+                    var listenerComps = obj.GetComponentsInChildren<GameEventListener>(true);
+                    var AllComps = obj.GetComponentsInChildren<MonoBehaviour>(true);
+                    listenerCount += listenerComps.Length;
+                    
+                    foreach (var comp in AllComps)
                     {
                         FieldInfo[] fields = comp.GetType().GetFields();
 
                         foreach (var field in fields)
                         {
-                            EventAttribute attrib = Attribute.GetCustomAttribute(field, typeof(EventAttribute)) as EventAttribute;
+                            KAIEvent attrib = Attribute.GetCustomAttribute(field, typeof(KAIEvent)) as KAIEvent;
 
                             if (attrib != null)
                             {
@@ -370,11 +372,12 @@ namespace KAI
                                 }
                             }
                         }
-                    }
-
-                    result.NumberOfEvents = eventCount + " Events";
-                    result.NumberOfReferences = referenceCount + " Event References";
+                    }                    
                 }
+
+                result.NumberOfListeners = listenerCount.ToString() + " Listeners";
+                result.NumberOfEvents = eventCount.ToString() + " Events";
+                result.NumberOfReferences = referenceCount.ToString() + " Event References";
             }
 
             return result;
