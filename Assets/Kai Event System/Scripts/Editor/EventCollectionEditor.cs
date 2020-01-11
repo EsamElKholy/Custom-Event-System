@@ -8,21 +8,20 @@ namespace KAI
     [CustomEditor(typeof(GameEventCollection))]
     public class EventCollectionEditor : Editor
     {
-        private bool UseInEditMode;
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
 
-            EditorGUILayout.Space();
-            UseInEditMode = GUILayout.Toggle(UseInEditMode, "Use In Edit Mode");
-            EditorGUILayout.Space();
-
             GameEventCollection e = target as GameEventCollection;
+
+            EditorGUILayout.Space();
+            e.UseInEditMode = GUILayout.Toggle(e.UseInEditMode, "Use In Edit Mode");
+            EditorGUILayout.Space();
 
             if (GUILayout.Button("Raise"))
             {
-                if ((UseInEditMode && !Application.isPlaying)
-                    || (!UseInEditMode && Application.isPlaying))
+                if ((e.UseInEditMode && !Application.isPlaying)
+                    || (!e.UseInEditMode && Application.isPlaying))
                 {
                     e.Raise();
                 }

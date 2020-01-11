@@ -23,6 +23,9 @@ namespace KAI
         [HideInInspector]
         public CustomEventType Type;
 
+        [HideInInspector]
+        public bool UseInEditMode;
+        
         public virtual void Raise()
         { }
 

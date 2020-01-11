@@ -48,9 +48,23 @@ public class ColorChanger : MonoBehaviour
 
     private void ChangeColor(SkinColor skinColor)
     {
+        if (!renderer)
+        {
+            renderer = GetComponent<Renderer>();
+        }
+
         if (renderer)
         {
-            var material = renderer.material;
+            Material material = null;
+
+            if (!Application.isPlaying)
+            {
+                material = renderer.material;
+            }
+            else
+            {
+                material = renderer.sharedMaterial;
+            }
 
             switch (skinColor)
             {
