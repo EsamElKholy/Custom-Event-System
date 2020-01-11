@@ -28,16 +28,19 @@ namespace KAI
 
         private void Update()
         {
-            if (!Event)
-                return;
-
-            if (Counter >= Cooldown)
+            if (!Application.isPlaying)
             {
-                Counter = 0;
-                Event.RegisterListener(this);
-            }
+                if (!Event)
+                    return;
 
-            Counter += Time.deltaTime;
+                if (Counter >= Cooldown)
+                {
+                    Counter = 0;
+                    Event.RegisterListener(this);
+                }
+
+                Counter += Time.deltaTime;
+            }
         }
 
         void OnEnable()

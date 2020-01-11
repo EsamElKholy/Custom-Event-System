@@ -14,5 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   listeners:
   - {fileID: 0}
-  Description: 
+  Description: Changes the color to blue
   Type: 0
+  UseInEditMode: 0

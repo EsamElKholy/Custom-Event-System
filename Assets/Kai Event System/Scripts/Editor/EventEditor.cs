@@ -13,7 +13,7 @@ namespace KAI
             GameEvent e = target as GameEvent;
 
             EditorGUILayout.Space();
-            e.UseInEditMode = GUILayout.Toggle(e.UseInEditMode, "Use In Edit Mode");
+            e.UseInEditMode = GUILayout.Toggle(e.UseInEditMode, "Use In Editor Mode");
             EditorGUILayout.Space();
 
             if (GUILayout.Button("Raise"))

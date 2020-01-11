@@ -346,6 +346,7 @@ namespace KAI
                 int eventCount = 0;
                 int referenceCount = 0;
                 int listenerCount = 0;
+                Dictionary<string, CustomEvent> events = new Dictionary<string, CustomEvent>();
 
                 for (int j = 0; j < allObjects.Length; j++)
                 {
@@ -368,7 +369,11 @@ namespace KAI
                                 referenceCount++;
                                 if (field.GetValue(comp) as CustomEvent != null)
                                 {
-                                    eventCount++;
+                                    if (events.ContainsKey((field.GetValue(comp) as CustomEvent).GetInstanceID().ToString()) == false)
+                                    {
+                                        events.Add((field.GetValue(comp) as CustomEvent).GetInstanceID().ToString(), field.GetValue(comp) as CustomEvent);
+                                    }
+                                    //eventCount++;
                                 }
                             }
                         }
@@ -376,7 +381,7 @@ namespace KAI
                 }
 
                 result.NumberOfListeners = listenerCount.ToString() + " Listeners";
-                result.NumberOfEvents = eventCount.ToString() + " Events";
+                result.NumberOfEvents = events.Count.ToString() + " Events";
                 result.NumberOfReferences = referenceCount.ToString() + " Event References";
             }
 
