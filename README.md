@@ -1,6 +1,6 @@
-KAI Event System
+Custom Event System
 
-KAI Event System is a framework built around the "Observer pattern" concept and at its core it's divided into two parts: Events and Listeners.
+This Event System is a framework built around the "Observer pattern" concept and at its core it's divided into two parts: Events and Listeners.
 
 At any time you want (i.e: when the player presses a key) you can raise an "Event" and a "Listener" that was waiting for this event to be raised will do a certain series of actions specified by the user.
 
