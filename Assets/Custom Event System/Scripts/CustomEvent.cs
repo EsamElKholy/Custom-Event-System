@@ -10,7 +10,7 @@ public enum CustomEventType
 }
 
 [AttributeUsage(AttributeTargets.Field)]
-public class KAIEvent : Attribute
+public class CustomEventAttribute : Attribute
 { }
 
 public class CustomEvent : ScriptableObject

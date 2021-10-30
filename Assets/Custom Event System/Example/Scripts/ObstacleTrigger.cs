@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class ObstacleTrigger : MonoBehaviour
 {
-    [KAIEvent]
+    [CustomEventAttribute]
     public CustomEvent ColorChangeEvent;
-    [KAIEvent]
+    [CustomEventAttribute]
     public CustomEvent ColorResetEvent;
 
     private void OnTriggerEnter(Collider other)

@@ -6,7 +6,7 @@ using UnityEngine.Events;
 [ExecuteInEditMode]
 public class GameEventListener : MonoBehaviour
 {
-    [KAIEvent] public CustomEvent Event;
+    [CustomEventAttribute] public CustomEvent Event;
     public UnityEvent response;
 
     private float Cooldown = 3f;

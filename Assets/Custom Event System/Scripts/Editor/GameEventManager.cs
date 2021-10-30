@@ -219,7 +219,7 @@ public class GameEventManager : ScriptableObject
                                             bool add = false;
                                             foreach (var field in fields)
                                             {
-                                                KAIEvent attrib = Attribute.GetCustomAttribute(field, typeof(KAIEvent)) as KAIEvent;
+                                                CustomEventAttribute attrib = Attribute.GetCustomAttribute(field, typeof(CustomEventAttribute)) as CustomEventAttribute;
 
                                                 if (attrib != null)
                                                 {
@@ -257,7 +257,7 @@ public class GameEventManager : ScriptableObject
 
                 foreach (var field in fields)
                 {
-                    KAIEvent attrib = Attribute.GetCustomAttribute(field, typeof(KAIEvent)) as KAIEvent;
+                    CustomEventAttribute attrib = Attribute.GetCustomAttribute(field, typeof(CustomEventAttribute)) as CustomEventAttribute;
 
                     if (attrib != null)
                     {
@@ -292,7 +292,7 @@ public class GameEventManager : ScriptableObject
 
                     foreach (var field in fields)
                     {
-                        KAIEvent attrib = Attribute.GetCustomAttribute(field, typeof(KAIEvent)) as KAIEvent;
+                        CustomEventAttribute attrib = Attribute.GetCustomAttribute(field, typeof(CustomEventAttribute)) as CustomEventAttribute;
 
                         if (attrib != null)
                         {
@@ -360,7 +360,7 @@ public class GameEventManager : ScriptableObject
 
                     foreach (var field in fields)
                     {
-                        KAIEvent attrib = Attribute.GetCustomAttribute(field, typeof(KAIEvent)) as KAIEvent;
+                        CustomEventAttribute attrib = Attribute.GetCustomAttribute(field, typeof(CustomEventAttribute)) as CustomEventAttribute;
 
                         if (attrib != null)
                         {
