@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -15,6 +17,11 @@ public class GameEventListener : MonoBehaviour
     public void OnEventRaised()
     {
         response.Invoke();
+    }
+
+    public void OnDelayedEventRaised(float delay) 
+    {
+        DelayedInvoke(this.GetCancellationTokenOnDestroy(), delay).Forget();
     }
 
     private void Awake()
@@ -53,5 +60,11 @@ public class GameEventListener : MonoBehaviour
         if (!Event)
             return;
         Event.UnRegisterListener(this);
+    }
+
+    private async UniTaskVoid DelayedInvoke(CancellationToken cancellationToken, float delay) 
+    {
+        await UniTask.Delay((int)(delay * 1000f));
+        response.Invoke();
     }
 }

@@ -44,6 +44,8 @@ public class GameEventManager : ScriptableObject
     [HideInInspector]
     public List<SceneAsset> _Scenes = new List<SceneAsset>();
     [HideInInspector]
+    public List<GameObject> _Prefabs = new List<GameObject>();
+    [HideInInspector]
     public Dictionary<string, EventData> Events = new Dictionary<string, EventData>();
     [HideInInspector]
     public List<GameEventListener> Listeners = new List<GameEventListener>();
@@ -65,9 +67,19 @@ public class GameEventManager : ScriptableObject
         }
     }
 
-    public void FindAllListeners(List<string> scenes)
+    public void FindAllListeners(List<string> scenes, List<string> prefabs) 
     {
         Listeners = new List<GameEventListener>();
+        FindAllListenersInScenes(scenes);
+        FindAllListenersInPrefabs(prefabs);
+    }
+
+    public void FindAllListenersInScenes(List<string> scenes, bool clearFirst = false)
+    {
+        if (clearFirst)
+        {
+            Listeners = new List<GameEventListener>();
+        }
 
         if (scenes.Count > 0)
         {
@@ -124,6 +136,35 @@ public class GameEventManager : ScriptableObject
         }
     }
 
+    public void FindAllListenersInPrefabs(List<string> prefabs, bool clearFirst = false)
+    {
+        if (clearFirst)
+        {
+            Listeners = new List<GameEventListener>();
+        }
+
+        if (prefabs.Count > 0)
+        {
+            for (int i = 0; i < prefabs.Count; i++)
+            {
+                for (int j = 0; j < _Prefabs.Count; j++)
+                {
+                    var guid1 = AssetDatabase.AssetPathToGUID(prefabs[i]);
+                    var guid2 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(_Prefabs[j]));
+
+                    {
+                        if (guid1.Equals(guid2))
+                        {
+                            var comps = _Prefabs[j].GetComponentsInChildren<GameEventListener>(true);
+
+                            Listeners.AddRange(comps);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public void RemoveScene(SceneAsset scene)
     {
         if (scene)
@@ -163,9 +204,46 @@ public class GameEventManager : ScriptableObject
         }
     }
 
-    public void FindAllReferences(List<string> scenes)
+    public void RemovePrefab(GameObject prefab)
+    {
+        if (prefab)
+        {
+            int index = -1;
+
+            for (int i = 0; i < _Prefabs.Count; i++)
+            {
+                var guid1 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(_Prefabs[i]));
+                var guid2 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(prefab));
+
+                if (guid1.Equals(guid2))
+                {
+                    index = i;
+
+                    break;
+                }
+            }
+
+            if (index >= 0)
+            {
+                _Prefabs.RemoveAt(index);
+            }
+        }
+    }
+
+    public void FindAllReferences(List<string> scenes, List<string> prefabs) 
     {
         References = new List<EventReference>();
+
+        FindAllReferencesInScenes(scenes);
+        FindAllReferencesInPrefabs(prefabs);
+    }
+
+    public void FindAllReferencesInScenes(List<string> scenes, bool clearFirst = false)
+    {
+        if (clearFirst)
+        {
+            References = new List<EventReference>();
+        }
 
         if (scenes.Count > 0)
         {
@@ -236,6 +314,59 @@ public class GameEventManager : ScriptableObject
                                             }
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public void FindAllReferencesInPrefabs(List<string> prefabs, bool clearFirst = false)
+    {
+        if (clearFirst)
+        {
+            References = new List<EventReference>();
+        }
+
+        if (prefabs.Count > 0)
+        {
+            for (int i = 0; i < prefabs.Count; i++)
+            {
+                for (int j = 0; j < _Prefabs.Count; j++)
+                {
+                    {
+                        var guid1 = AssetDatabase.AssetPathToGUID(prefabs[i]);
+                        var guid2 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(_Prefabs[j]));
+
+                        if (guid1.Equals(guid2))
+                        {
+                            var comps = _Prefabs[j].GetComponentsInChildren<MonoBehaviour>(true);
+
+                            foreach (var comp in comps)
+                            {
+                                FieldInfo[] fields = comp.GetType().GetFields();
+
+                                var eventReference = new EventReference();
+                                eventReference.Reference = comp;
+                                bool add = false;
+                                foreach (var field in fields)
+                                {
+                                    CustomEventAttribute attrib = Attribute.GetCustomAttribute(field, typeof(CustomEventAttribute)) as CustomEventAttribute;
+
+                                    if (attrib != null)
+                                    {
+                                        eventReference.Events.Add(field.GetValue(comp) as CustomEvent);
+                                        eventReference.ReferenceNames.Add(field.Name);
+                                        eventReference.Fields.Add(field);
+                                        add = true;
+                                    }
+                                }
+
+                                if (add)
+                                {
+                                    References.Add(eventReference);
                                 }
                             }
                         }
@@ -382,6 +513,54 @@ public class GameEventManager : ScriptableObject
             result.NumberOfEvents = events.Count.ToString() + " Events";
             result.NumberOfReferences = referenceCount.ToString() + " Event References";
         }
+
+        return result;
+    }
+
+    public SceneStatistics GetPrefabStatistics(GameObject prefab)
+    {
+        SceneStatistics result = new SceneStatistics();
+
+        if (prefab == null)
+        {
+            return result;
+        }
+
+        int eventCount = 0;
+        int referenceCount = 0;
+        int listenerCount = 0;
+        Dictionary<string, CustomEvent> events = new Dictionary<string, CustomEvent>();
+
+        var listenerComps = prefab.GetComponentsInChildren<GameEventListener>(true);
+        var AllComps = prefab.GetComponentsInChildren<MonoBehaviour>(true);
+        listenerCount += listenerComps.Length;
+
+        foreach (var comp in AllComps)
+        {
+            FieldInfo[] fields = comp.GetType().GetFields();
+
+            foreach (var field in fields)
+            {
+                CustomEventAttribute attrib = Attribute.GetCustomAttribute(field, typeof(CustomEventAttribute)) as CustomEventAttribute;
+
+                if (attrib != null)
+                {
+                    referenceCount++;
+                    if (field.GetValue(comp) as CustomEvent != null)
+                    {
+                        if (events.ContainsKey((field.GetValue(comp) as CustomEvent).GetInstanceID().ToString()) == false)
+                        {
+                            events.Add((field.GetValue(comp) as CustomEvent).GetInstanceID().ToString(), field.GetValue(comp) as CustomEvent);
+                        }
+                        //eventCount++;
+                    }
+                }
+            }
+        }
+
+        result.NumberOfListeners = listenerCount.ToString() + " Listeners";
+        result.NumberOfEvents = events.Count.ToString() + " Events";
+        result.NumberOfReferences = referenceCount.ToString() + " Event References";
 
         return result;
     }

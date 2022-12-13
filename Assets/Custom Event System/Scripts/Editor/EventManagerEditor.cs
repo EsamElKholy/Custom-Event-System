@@ -10,11 +10,13 @@ public partial class EventManagerEditor : EditorWindow
     private static EventManagerEditor Instance;
     private GameEventManager EventManager;
 
-    private string[] TabTitles = { "Scenes", "Events", "Listeners", "References" };
+    private string[] TabTitles = { "Scenes", "Prefabs", "Events", "Listeners", "References" };
     private int CurrentTab = 0;
 
     private Dictionary<string, string> SceneNames = new Dictionary<string, string>();
-    private string[] DropdownNames;
+    private Dictionary<string, string> PrefabNames = new Dictionary<string, string>();
+    private string[] SceneDropdownNames;
+    private string[] PrefabDropdownNames;
 
 
     private Rect tabBar;
@@ -24,18 +26,22 @@ public partial class EventManagerEditor : EditorWindow
     private bool showRightPanel;
 
     private SceneAsset selectedScene;
+    private GameObject selectedPrefab;
     private EventData selectedEvent;
     private GameEventListener selectedListener;
     private EventReference selectedReference;
 
     private int eventPickerID = -1;
     private int scenePickerID = -1;
+    private int prefabPickerID = -1;
 
     private GameEvent pickedEvent;
     private GameEventCollection gec;
     private SceneAsset pickedScene;
+    private GameObject pickedPrefab;
 
     private SceneAsset toBeDeletedScene;
+    private GameObject toBeDeletedPrefab;
     private GameEvent toBeDeletedEvent;
     private GameEventCollection collectionToDeleteFrom;
 
@@ -44,7 +50,9 @@ public partial class EventManagerEditor : EditorWindow
     private Vector2 eventScroll;
 
     private List<SceneAsset> scenes = new List<SceneAsset>();
-    private int filter = 0;
+    private List<GameObject> prefabs = new List<GameObject>();
+    private int sceneFilter = 0;
+    private int prefabFilter = 0;
 
     [MenuItem("Custom Tools/Event Manager")]
     public static void OpenWindow()
@@ -116,6 +124,35 @@ public partial class EventManagerEditor : EditorWindow
             }
         }
 
+        if (pickedPrefab)
+        {
+            if (EventManager)
+            {
+                bool alreadyThere = false;
+                for (int i = 0; i < EventManager._Prefabs.Count; i++)
+                {
+                    var guid1 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(EventManager._Prefabs[i]));
+                    var guid2 = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(pickedPrefab));
+                    if (guid1.Equals(guid2))
+                    {
+                        alreadyThere = true;
+                        break;
+                    }
+                }
+
+                if (!alreadyThere)
+                {
+                    EventManager._Prefabs.Add(pickedPrefab);
+                }
+
+                pickedPrefab = null;
+
+                GUI.FocusControl("");
+
+                searchString = "";
+            }
+        }
+
         if (collectionToDeleteFrom && toBeDeletedEvent)
         {
             collectionToDeleteFrom.RemoveEvent(toBeDeletedEvent);
@@ -141,7 +178,20 @@ public partial class EventManagerEditor : EditorWindow
             }
         }
 
-        if (CurrentTab == 1)
+        if (toBeDeletedPrefab)
+        {
+            if (EventManager)
+            {
+                EventManager.RemovePrefab(toBeDeletedPrefab);
+                toBeDeletedPrefab = null;
+
+                GUI.FocusControl("");
+
+                searchString = "";
+            }
+        }
+
+        if (CurrentTab == 2)
         {
             if (EventManager)
             {

@@ -43,15 +43,20 @@ public partial class EventManagerEditor : EditorWindow
                             break;
                         case 1:
                             {
-                                DrawRightEventSection(rightDataArea);
+                                DrawRightPrefabSection(rightDataArea);
                             }
                             break;
                         case 2:
                             {
-                                DrawRightListenerSection(rightDataArea);
+                                DrawRightEventSection(rightDataArea);
                             }
                             break;
                         case 3:
+                            {
+                                DrawRightListenerSection(rightDataArea);
+                            }
+                            break;
+                        case 4:
                             {
                                 DrawRightReferenceSection(rightDataArea);
                             }
@@ -91,6 +96,38 @@ public partial class EventManagerEditor : EditorWindow
         EditorGUILayout.Space();
 
         string referencesText = "This scene is using " + statistics.NumberOfReferences + " across all scripts in the scene.";
+        GUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("Event Reference Details", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth));
+        EditorGUILayout.LabelField(referencesText, EditorStyles.helpBox, GUILayout.Width(labelDataWidth));
+        GUILayout.EndHorizontal();
+    }
+
+    private void DrawRightPrefabSection(Rect rightDataArea)
+    {
+        SceneStatistics statistics = EventManager.GetPrefabStatistics(selectedPrefab);
+        float labelTitleWidth = rightDataArea.width / 4;
+        float labelDataWidth = (rightDataArea.width * 3 / 4) - 20;
+        string eventsText = "This prefab is using " + statistics.NumberOfEvents + " referenced across all scripts in the prefab.";
+        GUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("Event Details", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth));
+        EditorGUILayout.LabelField(eventsText, EditorStyles.helpBox, GUILayout.Width(labelDataWidth));
+        GUILayout.EndHorizontal();
+        EditorStyles.helpBox.fontSize = 12;
+        EditorStyles.helpBox.fontStyle = FontStyle.Bold;
+
+        EditorGUILayout.Space();
+        EditorGUILayout.Space();
+
+        string listenersText = "This prefab is using " + statistics.NumberOfListeners;
+        GUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("Event Listener Details", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth));
+        EditorGUILayout.LabelField(listenersText, EditorStyles.helpBox, GUILayout.Width(labelDataWidth));
+        GUILayout.EndHorizontal();
+
+        EditorGUILayout.Space();
+        EditorGUILayout.Space();
+
+        string referencesText = "This prefab is using " + statistics.NumberOfReferences + " across all scripts in the prefab.";
         GUILayout.BeginHorizontal();
         EditorGUILayout.LabelField("Event Reference Details", EditorStyles.helpBox, GUILayout.Width(labelTitleWidth));
         EditorGUILayout.LabelField(referencesText, EditorStyles.helpBox, GUILayout.Width(labelDataWidth));

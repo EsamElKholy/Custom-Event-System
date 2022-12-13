@@ -111,7 +111,9 @@ public partial class EventManagerEditor : EditorWindow
                         {
                             continue;
                         }
+
                         var guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(EventManager._Scenes[i]));
+
                         if (SceneNames.ContainsKey(guid) == false)
                         {
                             if (path)
@@ -126,10 +128,46 @@ public partial class EventManagerEditor : EditorWindow
                     }
                 }
 
-                DropdownNames = new string[SceneNames.Count];
-                SceneNames.Values.CopyTo(DropdownNames, 0);
+                SceneDropdownNames = new string[SceneNames.Count];
+                SceneNames.Values.CopyTo(SceneDropdownNames, 0);
             }
+        }
+    }
 
+    private void RefreshPrefabNames(bool path)
+    {
+        if (EventManager)
+        {
+            {
+                {
+                    PrefabNames = new Dictionary<string, string>();
+
+                    for (int i = 0; i < EventManager._Prefabs.Count; i++)
+                    {
+                        if (EventManager._Prefabs[i] == null)
+                        {
+                            continue;
+                        }
+
+                        var guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(EventManager._Prefabs[i]));
+
+                        if (PrefabNames.ContainsKey(guid) == false)
+                        {
+                            if (path)
+                            {
+                                PrefabNames.Add(guid, AssetDatabase.GetAssetPath(EventManager._Prefabs[i]));
+                            }
+                            else
+                            {
+                                PrefabNames.Add(guid, EventManager._Prefabs[i].name);
+                            }
+                        }
+                    }
+                }
+
+                PrefabDropdownNames = new string[PrefabNames.Count];
+                PrefabNames.Values.CopyTo(PrefabDropdownNames, 0);
+            }
         }
     }
 }

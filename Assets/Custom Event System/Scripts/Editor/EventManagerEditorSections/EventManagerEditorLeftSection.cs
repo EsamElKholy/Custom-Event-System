@@ -19,7 +19,8 @@ public partial class EventManagerEditor : EditorWindow
         {
             searchString = "";
             showRightPanel = false;
-            filter = 0;
+            sceneFilter = 0;
+            prefabFilter = 0;
             GUI.FocusControl("");
         }
 
@@ -29,7 +30,7 @@ public partial class EventManagerEditor : EditorWindow
         GUILayout.EndArea();
         Rect leftDataArea = new Rect(tabBar.x, tabBar.y + tabBar.height, (position.width * resizer.SizeRatio - 3), position.height - 60 - tabBar.height - 3);
 
-        if (CurrentTab == 0)
+        if (CurrentTab == 0 || CurrentTab == 1)
         {
             leftDataArea.height -= 25;
         }
@@ -49,15 +50,20 @@ public partial class EventManagerEditor : EditorWindow
                         break;
                     case 1:
                         {
-                            DrawLeftEventSection(leftDataArea);
+                            DrawLeftPrefabSection(leftDataArea);
                         }
                         break;
                     case 2:
                         {
-                            DrawLeftListenerSection(leftDataArea);
+                            DrawLeftEventSection(leftDataArea);
                         }
                         break;
                     case 3:
+                        {
+                            DrawLeftListenerSection(leftDataArea);
+                        }
+                        break;
+                    case 4:
                         {
                             DrawLeftReferenceSection(leftDataArea);
                         }
@@ -89,6 +95,28 @@ public partial class EventManagerEditor : EditorWindow
                     else if (Event.current.commandName == "ObjectSelectorClosed" && EditorGUIUtility.GetObjectPickerControlID() == scenePickerID)
                     {
                         pickedScene = (SceneAsset)EditorGUIUtility.GetObjectPickerObject();
+                    }
+
+                    GUILayout.EndArea();
+                }
+                break;
+            case 1: 
+                {
+                    GUILayout.BeginArea(new Rect(leftDataArea.x, leftDataArea.height + leftDataArea.y + 3, leftDataArea.width, 25));
+                    if (GUILayout.Button("Add Prefab"))
+                    {
+                        prefabPickerID = EditorGUIUtility.GetControlID(FocusType.Keyboard);
+
+                        EditorGUIUtility.ShowObjectPicker<GameObject>(null, false, "", prefabPickerID);
+                    }
+
+                    if (Event.current.commandName == "ObjectSelectorUpdated" && EditorGUIUtility.GetObjectPickerControlID() == prefabPickerID)
+                    {
+                        prefabPickerID = -1;
+                    }
+                    else if (Event.current.commandName == "ObjectSelectorClosed" && EditorGUIUtility.GetObjectPickerControlID() == prefabPickerID)
+                    {
+                        pickedPrefab = (GameObject)EditorGUIUtility.GetObjectPickerObject();
                     }
 
                     GUILayout.EndArea();
@@ -207,6 +235,65 @@ public partial class EventManagerEditor : EditorWindow
         }
     }
 
+    private void DrawLeftPrefabSection(Rect leftDataArea)
+    {
+        EditorGUILayout.Space();
+        float y = 0;
+        float singleH = 55;
+        float h = prefabs.Count * 1 * singleH;
+        float nh = leftDataArea.height;
+        float nw = leftDataArea.width;
+        if (leftDataArea.height < h)
+        {
+            float dt = Mathf.Abs(leftDataArea.height - (h));
+            nh += dt;
+            nw -= 25;
+        }
+        else
+        {
+            nh -= 15;
+            nw -= 8;
+        }
+
+        GUILayout.Label("", GUILayout.Width(leftDataArea.width - 29), GUILayout.Height(nh));
+
+        for (int i = 0; i < prefabs.Count * 1; i++)
+        {
+            GUILayout.BeginArea(new Rect(0, y, nw, 55), EditorStyles.helpBox);
+            GUILayout.Space(3);
+            EditorGUILayout.BeginHorizontal();
+
+            GUILayout.Label(prefabs[i].name, EditorStyles.label, GUILayout.Width(leftDataArea.width / 3 - 15));
+
+            prefabs[i] = (GameObject)EditorGUILayout.ObjectField(prefabs[i], typeof(GameObject), false, GUILayout.Width((leftDataArea.width * 2 / 3) - 37));
+
+            if (GUILayout.Button("X", EditorStyles.toolbarButton))
+            {
+                toBeDeletedPrefab = prefabs[i];
+            }
+
+            EditorGUILayout.EndHorizontal();
+            GUILayout.Space(3);
+            EditorGUILayout.BeginHorizontal();
+
+            if (GUILayout.Button("Show Details"))
+            {
+                var path = AssetDatabase.GetAssetPath(prefabs[i]);
+
+                showRightPanel = true;
+                selectedPrefab = prefabs[i];
+                rightPanelTitle = "Prefab: \"" + path + "\" Statistics";
+            }
+            GUILayout.Space(2);
+            
+            EditorGUILayout.EndHorizontal();
+
+            GUILayout.EndArea();
+
+            y += 65;
+        }
+    }
+
     private void DrawLeftEventSection(Rect leftDataArea)
     {
         if (EventManager)
@@ -307,21 +394,44 @@ public partial class EventManagerEditor : EditorWindow
                 nh -= 27;
                 nw -= 8;
             }
-
+            
             EditorGUILayout.BeginHorizontal();
             bool clicked = GUILayout.Button("Find Listeners in", EditorStyles.toolbarButton);
             GUILayout.Space(2);
             RefreshSceneNames(true);
-            filter = EditorGUILayout.MaskField(filter, DropdownNames, EditorStyles.toolbarPopup);
+            RefreshPrefabNames(true);
+
+            if (SceneDropdownNames.Length != 0)
+            {
+                sceneFilter = EditorGUILayout.MaskField(sceneFilter, SceneDropdownNames, EditorStyles.toolbarPopup);
+            }
+
+            if (PrefabDropdownNames.Length != 0)
+            {
+                prefabFilter = EditorGUILayout.MaskField(prefabFilter, PrefabDropdownNames, EditorStyles.toolbarPopup);
+            }
+
             List<string> selectedScenes = new List<string>();
 
-            for (int i = 0; i < DropdownNames.Length; i++)
+            for (int i = 0; i < SceneDropdownNames.Length; i++)
             {
                 int layer = 1 << i;
 
-                if ((filter & layer) != 0)
+                if ((sceneFilter & layer) != 0)
                 {
-                    selectedScenes.Add(DropdownNames[i]);
+                    selectedScenes.Add(SceneDropdownNames[i]);
+                }
+            }
+
+            List<string> selectedPrefabs = new List<string>();
+
+            for (int i = 0; i < PrefabDropdownNames.Length; i++)
+            {
+                int layer = 1 << i;
+
+                if ((prefabFilter & layer) != 0)
+                {
+                    selectedPrefabs.Add(PrefabDropdownNames[i]);
                 }
             }
 
@@ -332,10 +442,12 @@ public partial class EventManagerEditor : EditorWindow
                     showRightPanel = false;
                     selectedListener = null;
                     searchString = "";
-                    EventManager.FindAllListeners(selectedScenes);
+                    EventManager.FindAllListeners(selectedScenes, selectedPrefabs);
                 }
             }
+
             RefreshSceneNames(false);
+            RefreshPrefabNames(false);
 
             EditorGUILayout.EndHorizontal();
 
@@ -399,17 +511,37 @@ public partial class EventManagerEditor : EditorWindow
             bool clicked = GUILayout.Button("Find References in", EditorStyles.toolbarButton);
             GUILayout.Space(2);
             RefreshSceneNames(true);
-            filter = EditorGUILayout.MaskField(filter, DropdownNames, EditorStyles.toolbarPopup);
+            RefreshPrefabNames(true);
+            if (SceneDropdownNames.Length > 0)
+            {
+                sceneFilter = EditorGUILayout.MaskField(sceneFilter, SceneDropdownNames, EditorStyles.toolbarPopup);
+            }
+
+            if (PrefabDropdownNames.Length > 0)
+            {
+                prefabFilter = EditorGUILayout.MaskField(prefabFilter, PrefabDropdownNames, EditorStyles.toolbarPopup);
+            }
 
             List<string> selectedScenes = new List<string>();
+            List<string> selectedPrefabs = new List<string>();
 
-            for (int i = 0; i < DropdownNames.Length; i++)
+            for (int i = 0; i < SceneDropdownNames.Length; i++)
             {
                 int layer = 1 << i;
 
-                if ((filter & layer) != 0)
+                if ((sceneFilter & layer) != 0)
                 {
-                    selectedScenes.Add(DropdownNames[i]);
+                    selectedScenes.Add(SceneDropdownNames[i]);
+                }
+            }
+
+            for (int i = 0; i < PrefabDropdownNames.Length; i++)
+            {
+                int layer = 1 << i;
+
+                if ((prefabFilter & layer) != 0)
+                {
+                    selectedPrefabs.Add(PrefabDropdownNames[i]);
                 }
             }
 
@@ -420,10 +552,12 @@ public partial class EventManagerEditor : EditorWindow
                     showRightPanel = false;
                     selectedReference = null;
                     searchString = "";
-                    EventManager.FindAllReferences(selectedScenes);
+
+                    EventManager.FindAllReferences(selectedScenes, selectedPrefabs);
                 }
             }
             RefreshSceneNames(false);
+            RefreshPrefabNames(false);
 
             EditorGUILayout.EndHorizontal();
 

@@ -63,17 +63,52 @@ public partial class EventManagerEditor : EditorWindow
                     }
                 }
 
-                DropdownNames = new string[SceneNames.Count];
-                SceneNames.Values.CopyTo(DropdownNames, 0);
+                if (searchString.Length == 0 && CurrentTab == 1)
+                {
+                    PrefabNames = new Dictionary<string, string>();
+
+                    for (int i = 0; i < EventManager._Prefabs.Count; i++)
+                    {
+                        if (EventManager._Prefabs[i] == null)
+                        {
+                            continue;
+                        }
+                        var guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(EventManager._Prefabs[i]));
+                        if (PrefabNames.ContainsKey(guid) == false)
+                        {
+                            PrefabNames.Add(guid, EventManager._Prefabs[i].name);
+                        }
+                    }
+                }
+
+                SceneDropdownNames = new string[SceneNames.Count];
+                SceneNames.Values.CopyTo(SceneDropdownNames, 0);
 
                 scenes = new List<SceneAsset>();
-                for (int i = 0; i < DropdownNames.Length; i++)
+                for (int i = 0; i < SceneDropdownNames.Length; i++)
                 {
                     for (int j = 0; j < EventManager._Scenes.Count; j++)
                     {
-                        if (EventManager._Scenes[j] && EventManager._Scenes[j].name.Equals(DropdownNames[i]))
+                        if (EventManager._Scenes[j] && EventManager._Scenes[j].name.Equals(SceneDropdownNames[i]))
                         {
                             scenes.Add(EventManager._Scenes[j]);
+
+                            break;
+                        }
+                    }
+                }
+
+                PrefabDropdownNames = new string[PrefabNames.Count];
+                PrefabNames.Values.CopyTo(PrefabDropdownNames, 0);
+
+                prefabs = new List<GameObject>();
+                for (int i = 0; i < PrefabDropdownNames.Length; i++)
+                {
+                    for (int j = 0; j < EventManager._Prefabs.Count; j++)
+                    {
+                        if (EventManager._Prefabs[j] && EventManager._Prefabs[j].name.Equals(PrefabDropdownNames[i]))
+                        {
+                            prefabs.Add(EventManager._Prefabs[j]);
 
                             break;
                         }
@@ -162,6 +197,48 @@ public partial class EventManagerEditor : EditorWindow
                     break;
                 case 1:
                     {
+                        if (result.Length > 0)
+                        {
+                            PrefabNames = new Dictionary<string, string>();
+
+                            for (int i = 0; i < EventManager._Prefabs.Count; i++)
+                            {
+                                if (EventManager._Prefabs[i] == null)
+                                {
+                                    continue;
+                                }
+                                var guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(EventManager._Prefabs[i]));
+                                if (PrefabNames.ContainsKey(guid) == false)
+                                {
+                                    PrefabNames.Add(guid, EventManager._Prefabs[i].name);
+                                }
+                            }
+
+                            Dictionary<string, string> prefabs = new Dictionary<string, string>();
+                            foreach (var item in PrefabNames)
+                            {
+                                if (item.Value.ToLower().Contains(result.ToLower()))
+                                {
+                                    if (prefabs.ContainsKey(item.Key) == false)
+                                    {
+                                        prefabs.Add(item.Key, item.Value);
+                                    }
+                                }
+                            }
+
+                            PrefabNames = new Dictionary<string, string>();
+                            foreach (var item in prefabs)
+                            {
+                                if (PrefabNames.ContainsKey(item.Key) == false)
+                                {
+                                    PrefabNames.Add(item.Key, item.Value);
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case 2:
+                    {
                         if (EventManager)
                         {
                             EventManager.FindAllEvents();
@@ -179,25 +256,37 @@ public partial class EventManagerEditor : EditorWindow
                         EventManager.Events = results;
                     }
                     break;
-                case 2:
+                case 3:
                     {
                         RefreshSceneNames(true);
+                        RefreshPrefabNames(true);
                         List<string> selectedScenes = new List<string>();
+                        List<string> selectedPrefabs = new List<string>();
 
-                        for (int i = 0; i < DropdownNames.Length; i++)
+                        for (int i = 0; i < SceneDropdownNames.Length; i++)
                         {
                             int layer = 1 << i;
 
-                            if ((filter & layer) != 0)
+                            if ((sceneFilter & layer) != 0)
                             {
-                                selectedScenes.Add(DropdownNames[i]);
+                                selectedScenes.Add(SceneDropdownNames[i]);
+                            }
+                        }
+
+                        for (int i = 0; i < PrefabDropdownNames.Length; i++)
+                        {
+                            int layer = 1 << i;
+
+                            if ((prefabFilter & layer) != 0)
+                            {
+                                selectedPrefabs.Add(PrefabDropdownNames[i]);
                             }
                         }
 
                         {
                             if (EventManager)
                             {
-                                EventManager.FindAllListeners(selectedScenes);
+                                EventManager.FindAllListeners(selectedScenes, selectedPrefabs);
 
                                 List<GameEventListener> newResult = new List<GameEventListener>();
 
@@ -214,28 +303,41 @@ public partial class EventManagerEditor : EditorWindow
                         }
 
                         RefreshSceneNames(false);
+                        RefreshPrefabNames(false);
                     }
                     break;
-                case 3:
+                case 4:
                     {
                         RefreshSceneNames(true);
+                        RefreshPrefabNames(true);
 
                         List<string> selectedScenes = new List<string>();
+                        List<string> selectedPrefabs = new List<string>();
 
-                        for (int i = 0; i < DropdownNames.Length; i++)
+                        for (int i = 0; i < SceneDropdownNames.Length; i++)
                         {
                             int layer = 1 << i;
 
-                            if ((filter & layer) != 0)
+                            if ((sceneFilter & layer) != 0)
                             {
-                                selectedScenes.Add(DropdownNames[i]);
+                                selectedScenes.Add(SceneDropdownNames[i]);
+                            }
+                        }
+
+                        for (int i = 0; i < PrefabDropdownNames.Length; i++)
+                        {
+                            int layer = 1 << i;
+
+                            if ((prefabFilter & layer) != 0)
+                            {
+                                selectedPrefabs.Add(PrefabDropdownNames[i]);
                             }
                         }
 
                         {
                             if (EventManager)
                             {
-                                EventManager.FindAllReferences(selectedScenes);
+                                EventManager.FindAllReferences(selectedScenes, selectedPrefabs);
 
                                 List<EventReference> newResult = new List<EventReference>();
 
@@ -252,6 +354,7 @@ public partial class EventManagerEditor : EditorWindow
                         }
 
                         RefreshSceneNames(false);
+                        RefreshPrefabNames(false);
                     }
                     break;
                 default:
